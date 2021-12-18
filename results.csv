@@ -1,0 +1,5 @@
+_I_E_,_N_S_,_T_F_,_J_P_,Best in Class:,Overall Best
+Decision Tree: Features: 34 Accuracy: 0.79,Decision Tree: Features: 23 Accuracy: 0.78,Decision Tree: Features: 31 Accuracy: 0.71,Decision Tree: Features: 44 Accuracy: 0.8,Decision Tree: 0.3500016000000001,0.4572288
+Logistic Regession: Features: 31 Accuracy: 0.81,Logistic Regession: Features: 21 Accuracy: 0.81,Logistic Regession: Features: 44 Accuracy: 0.84,Logistic Regession: Features: 44 Accuracy: 0.76,Logistic Regression: 0.41885424000000004,
+Random Forest: Features: 47 Accuracy: 0.84,Random Forest: Features: 47 Accuracy: 0.79,Random Forest: Features: 45 Accuracy: 0.78,Random Forest: Features: 35 Accuracy: 0.77,Random Forest: 0.39855816,
+Naive Bays: Features: 48 Accuracy: 0.8,Naive Bays: Features: 36 Accuracy: 0.78,Naive Bays: Features: 44 Accuracy: 0.8,Naive Bays: Features: 36 Accuracy: 0.77,Naive Bays: 0.38438400000000006,
