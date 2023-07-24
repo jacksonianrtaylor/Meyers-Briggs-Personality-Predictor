@@ -153,8 +153,8 @@ for item in pairs:
     print(item, "Classification:")
     while(i<6):           
         
-        #uses multithreading for a small to medium improvements in runtime
-        
+        #uses multithreading for a small to medium improvements in runtime   
+        #the negation is used because the above funtions finds the fminbound and we want the opposite 
         t1 = return_thread(group=None,target=fminbound,
                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("dec_tree_model",X, y), "full_output" : True, "disp" :0})
         t2 = return_thread(group=None,target=fminbound,
@@ -179,8 +179,7 @@ for item in pairs:
         # local_optima_3 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("rand_forest_model",X, y), full_output  = True, disp   =0)
         # local_optima_4 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("naive_bays_model",X, y), full_output  = True, disp   =0)
         
-        #again the negation is wierd???
-        #why is local_optima a list or tuple???
+        #the negation is used because the above funtions finds the fminbound and we want the opposite
         local_optimas_dec.append((-local_optima_1[1], int(local_optima_1[0])))
         local_optimas_reg.append((-local_optima_2[1], int(local_optima_2[0])))
         local_optimas_for.append((-local_optima_3[1], int(local_optima_3[0])))
@@ -211,6 +210,8 @@ for item in pairs:
     ,"Random Forest: "+ "Features: "+str(local_optimas_for[0][1])+" Accuracy: "+str(local_optimas_for[0][0])
     ,"Naive Bays: "+ "Features: "+str(local_optimas_bays[0][1])+" Accuracy: "+str(local_optimas_bays[0][0])]
     
+
+    #print all the results of the optimized models
     print(item, "Classification:")
     print("Best Predictor Function Scores:")
     print("Decision Tree:","Features:",local_optimas_dec[0][1],"Accuracy:",local_optimas_dec[0][0])
@@ -218,28 +219,48 @@ for item in pairs:
     print("Random Forest:", "Features:",local_optimas_for[0][1],"Accuracy:",local_optimas_for[0][0])
     print("Naive Bays:", "Features:",local_optimas_bays[0][1],"Accuracy:",local_optimas_bays[0][0],"\n")
     
+    #Best of class is a list of optimal scores for each model for each personality pair
+    #note that this append is just for a single personality pair
+    #note local_optimas_dec[0][0] gives the best score since local_optimas_dec is sorted backwards
     Best_in_class.append([local_optimas_dec[0][0], 
                           local_optimas_reg[0][0], 
                           local_optimas_for[0][0], 
                           local_optimas_bays[0][0]])
 
+
+
+#this is the main code
 results = []
 classifiers = ["Decision Tree: ", "Logistic Regression: ", "Random Forest: ", "Naive Bays: "]
 print("Complete Myers Briggs Prediction for individual Classifiers:")
+
 for x in range (0,4):
     product =1
+    #Best of class is a list of optimal scores for each model for each personality pair
+    #item[x] is a score for the xth personailty pair
     for item in Best_in_class:
         product*= item[x]
+    #print the overall score and append to results using law of independence
     print(classifiers[x], product)
     results.append(str(classifiers[x])+ str(product))
 print("\nMyers Briggs Prediction from the best of each Classifier:")
+
+
+#using the law of independence and the best scored model for each personality pair...
+#find the absoluted best model
 product  = 1
 for item in Best_in_class:
     item.sort(reverse  = True)
     product*= item[0]
+
 print(product)
+
+#this shows the score using the same model for all the pair precitions
 out_df["Best in Class:"] = results
+#this shows the score using the best model for each pair prediction
 out_df["Overall Best"] = [str(product), "", "","" ]
+
+#outputs
 out_file = open('results.csv', 'w', encoding="utf-8")
 out_df.to_csv(out_file,index  = False)
 out_file.close()    
