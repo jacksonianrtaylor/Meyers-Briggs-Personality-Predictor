@@ -36,6 +36,8 @@ class return_thread(Thread):
         return self._return
 
 #classification models
+#they all return the accuracy score
+#which is simply the number of correct predictions over the number of predictions
 def naive_bays_model(X_train,X_test,y_train,y_test):
     naive_bays = MultinomialNB()
     naive_bays.fit(X_train,y_train)
@@ -73,12 +75,17 @@ def dec_tree_model(X_train,X_test,y_train,y_test):
     scores.sort(reverse  = True)   
     return scores[0]    
     
+
+#test class
 class tests():   
     def __init__(self):
         #seed remains the same for all test cases in order to make comparisons to multiple classifiers
-        self.seed = random.randint(0, 42)       
+        #the seed is still random so the same outcome will not happen everytime
+        self.seed = random.randint(0, 42) 
+
     def preprocess(self, i,X, y):
-        #chi squared feature selection 
+        #chi squared feature selection and returns the X_train,X_test,y_train,y_test
+        #i is the number of feature to use
         X_new = SelectKBest(chi2, k=i).fit_transform(X, y)
         return train_test_split(X_new,  y,test_size = 100, random_state = self.seed)
 
@@ -89,7 +96,10 @@ class tests():
         i = int(i)
         X = X.copy()
         y = y.copy()    
-        X_train,X_test,y_train,y_test = self.preprocess(i,X, y)        
+        X_train,X_test,y_train,y_test = self.preprocess(i,X, y)   
+
+        #perform model selection  
+        #why is the negation returned???
         if("dec_tree_model" == model_id):
             return -dec_tree_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
         if("log_reg_model" == model_id):
@@ -104,11 +114,20 @@ class tests():
 time_t = time.time()
 f = open('tf_matrix.csv', 'r', encoding="utf-8")
 data = pd.read_csv(f, header=0) 
+
+#create pairs list
 pairs  =  ["_I_E_","_N_S_", "_T_F_", "_J_P_"] 
+
+#features are all word/tokens the occur in at least one text
 features = list(data.keys())
 features = features[:-5]
+
+#X is all the occurances of the words for each text for each user
 X = data[features]
 
+#faster stucture..
+#double check
+#is normalization sufficient???
 X = csr_matrix(X)
 normalize(X, "l2")
 X = csc_matrix(X)
@@ -117,6 +136,8 @@ classification_tests = tests()
 Best_in_class = []
 out_df = pd.DataFrame()
  
+
+#how can you test 39 users when there is only 39 users for eahc personality
 print ("Testing 39 users for each of the 16 meyers briggs personalities...\n")
 c  =0
 for item in pairs:  
@@ -148,7 +169,7 @@ for item in pairs:
         t4.start()  
 
         local_optima_1 = t1.join()
-        local_optima_2 =t2.join()
+        local_optima_2 = t2.join()
         local_optima_3 = t3.join()
         local_optima_4 = t4.join()   
         
@@ -158,18 +179,28 @@ for item in pairs:
         # local_optima_3 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("rand_forest_model",X, y), full_output  = True, disp   =0)
         # local_optima_4 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("naive_bays_model",X, y), full_output  = True, disp   =0)
         
+        #again the negation is wierd???
+        #why is local_optima a list or tuple???
         local_optimas_dec.append((-local_optima_1[1], int(local_optima_1[0])))
         local_optimas_reg.append((-local_optima_2[1], int(local_optima_2[0])))
         local_optimas_for.append((-local_optima_3[1], int(local_optima_3[0])))
-        local_optimas_bays.append((-local_optima_4[1], int(local_optima_4[0])))     
+        local_optimas_bays.append((-local_optima_4[1], int(local_optima_4[0])))  
+
+
+        #local_optima_1[1] is a score
+        #and local_optima_1[0] is number of features used that gave the optimal score 
         print("Iteration:", i+1)
         print("Decision Tree Test:",  "Score:",-local_optima_1[1], "Features:", int(local_optima_1[0]))                       
         print("Logistic Regression Test:",  "Score:",-local_optima_2[1], "Features:", int(local_optima_2[0]))        
         print("Random Forest Test:", "Score:",-local_optima_3[1], "Features:", int(local_optima_3[0]))       
         print("Naive Bays Test:",  "Score:",-local_optima_4[1], "Features:", int(local_optima_4[0]),"\n")   
         
+        #i controls the number of features
+        #the optimizer finds the best number of features within bounds (i)*gap_size+1 and (i+1)*gap_size+1
+        #then iterates again with i = i+1
         i += 1
 
+    #find the best number features for each model
     local_optimas_dec.sort(reverse  = True) 
     local_optimas_reg.sort(reverse  = True)
     local_optimas_for.sort(reverse  = True)
