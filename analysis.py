@@ -5,6 +5,7 @@ import pandas as pd
 import scipy
 import sklearn
 import time
+#may try seeding to constant integer for consitent results accross runtimes
 import random
 import threading
 from threading import Thread
