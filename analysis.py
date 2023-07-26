@@ -20,7 +20,10 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
+#old scalar
 from sklearn.preprocessing import normalize
+#try new scalar 
+from sklearn.preprocessing import StandardScaler
 
 #Inherits from the Thread class so that a version can be created that returns function parameters return value in the join method
 class return_thread(Thread):
@@ -125,13 +128,39 @@ features = features[:-5]
 
 #X is all the occurances of the words for each text for each user
 X = data[features]
+X = X.values
+
+#added
+print(type(X))
 
 #faster stucture..
 #double check
 #is normalization sufficient???
-X = csr_matrix(X)
-normalize(X, "l2")
-X = csc_matrix(X)
+
+
+#ways to normalize...
+#ttps://www.digitalocean.com/community/tutorials/normalize-data-in-python
+#try other methods...
+
+
+#what is a csr matrix...
+#removed for compatible inputs for scalar.fit_transform(X)
+# X = csr_matrix(X)
+
+#first code change...
+#note: not in place...
+# X = normalize(X, "l2")
+#or
+# scalar = StandardScaler()
+# X = scalar.fit_transform(X)
+
+
+scalar = StandardScaler()
+
+X = scalar.fit_transform(X)
+
+#this is also removed for testing
+# X = csc_matrix(X)
 
 classification_tests = tests()
 Best_in_class = []
