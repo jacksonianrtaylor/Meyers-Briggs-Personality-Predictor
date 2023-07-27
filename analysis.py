@@ -118,13 +118,13 @@ class tests():
         #why is the negation returned???
         #why is the specific use of csc_matrix and csr_matrix used here???
         if("dec_tree_model" == model_id):
-            return -dec_tree_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
+            return -dec_tree_model(X_train,X_test,y_train,y_test)
         if("log_reg_model" == model_id):
-            return -log_reg_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
+            return -log_reg_model(X_train,X_test,y_train,y_test)
         if("rand_forest_model" == model_id):
-            return -rand_forest_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)      
+            return -rand_forest_model(X_train,X_test,y_train,y_test)      
         if("naive_bays_model" == model_id):
-            return -naive_bays_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
+            return -naive_bays_model(X_train,X_test,y_train,y_test)
         
            
 #load data from tf_matrix.csv
@@ -164,7 +164,7 @@ X = csr_matrix(X)
 # should try different seeds tho
 # tutorial
 # https://www.digitalocean.com/community/tutorials/normalize-data-in-python
-# question (is row normalization good for counts?)
+# question (is row normalization good for counts?) answer (yes)
 # https://stackoverflow.com/questions/60275133/difference-between-row-and-column-normalization#:~:text=Column%20normalization%20is%20more%20prevalent,faster%20while%20used%20in%20deeplearning.
 
 

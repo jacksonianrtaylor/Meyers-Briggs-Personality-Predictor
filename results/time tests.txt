@@ -1,0 +1,30 @@
+X = csr_matrix(X)
+X = normalize(X, norm = "l2", axis = 0), 
+X = csc_matrix(X)
+
+        if("dec_tree_model" == model_id):
+            return -dec_tree_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
+        if("log_reg_model" == model_id):
+            return -log_reg_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
+        if("rand_forest_model" == model_id):
+            return -rand_forest_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)      
+        if("naive_bays_model" == model_id):
+            return -naive_bays_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
+Time: 219.8278365135193 Seconds
+
+
+X = csr_matrix(X)
+X = normalize(X, norm = "l2", axis = 0), 
+X = csc_matrix(X)
+
+        if("dec_tree_model" == model_id):
+            return -dec_tree_model(X_train,X_test,y_train,y_test)
+        if("log_reg_model" == model_id):
+            return -log_reg_model(X_train,X_test,y_train,y_test)
+        if("rand_forest_model" == model_id):
+            return -rand_forest_model(X_train,X_test,y_train,y_test)      
+        if("naive_bays_model" == model_id):
+            return -naive_bays_model(X_train,X_test,y_train,y_test)
+Time: 203.1184859275818 Seconds
+
+
