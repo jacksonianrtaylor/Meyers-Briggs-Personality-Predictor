@@ -25,6 +25,12 @@ from sklearn.preprocessing import normalize
 #try new scalar 
 from sklearn.preprocessing import StandardScaler
 
+
+#global random seed for consistent train test splits amoung otherthings..
+rseed = 0
+
+
+
 #Inherits from the Thread class so that a version can be created that returns function parameters return value in the join method
 class return_thread(Thread):
     def __init__(self, group=None, target=None, name=None,
@@ -56,7 +62,7 @@ def log_reg_model(X_train,X_test,y_train,y_test):
 
 
 def rand_forest_model(X_train,X_test,y_train,y_test):
-    rand_for = RandomForestClassifier()
+    rand_for = RandomForestClassifier(random_state = rseed)
     rand_for.fit(X_train,y_train)
     y_pred=rand_for.predict(X_test)   
     return accuracy_score(y_test, y_pred)
@@ -64,13 +70,13 @@ def rand_forest_model(X_train,X_test,y_train,y_test):
 def fit_tree(X_train,X_test,y_train,y_test, alpha):
     if(alpha < 0):
         alpha = 0
-    dec_tree_a = DecisionTreeClassifier(ccp_alpha = alpha)
+    dec_tree_a = DecisionTreeClassifier(random_state = rseed, ccp_alpha = alpha)
     dec_tree_a.fit(X_train,y_train)
     y_pred = dec_tree_a.predict(X_test)   
     return accuracy_score(y_test, y_pred)
     
 def dec_tree_model(X_train,X_test,y_train,y_test):
-    dec_tree = DecisionTreeClassifier()
+    dec_tree = DecisionTreeClassifier(random_state = rseed)
     path = dec_tree.cost_complexity_pruning_path(X_train, y_train)
     alphas = path['ccp_alphas']   
     scores  = []
@@ -85,25 +91,32 @@ class tests():
     def __init__(self):
         #seed remains the same for all test cases in order to make comparisons to multiple classifiers
         #the seed is still random so the same outcome will not happen everytime
+
+        #not used at the moment...
         self.seed = random.randint(0, 42) 
 
     def preprocess(self, i,X, y):
         #chi squared feature selection and returns the X_train,X_test,y_train,y_test
         #i is the number of feature to use
-        X_new = SelectKBest(chi2, k=i).fit_transform(X, y)
-        return train_test_split(X_new,  y,test_size = 100, random_state = self.seed)
+        select = SelectKBest(chi2, k=i)
+        #note input must be non-negative to use chi2 feature selection
+        X_new = select.fit_transform(X, y)
+        return train_test_split(X_new,  y,test_size = 100, random_state = rseed)
 
     def test_features(self,i, model_id,X, y ):
         #https://blog.finxter.com/python-list-copy/
         #copy is atomic and rest of the variables are thread safe in the current namespace
         #this also re-intitializes the data in the local scope
         i = int(i)
+        #what is the point of this!!!
+        #to keep the operations atomic???...
         X = X.copy()
         y = y.copy()    
         X_train,X_test,y_train,y_test = self.preprocess(i,X, y)   
 
         #perform model selection  
         #why is the negation returned???
+        #why is the specific use of csc_matrix and csr_matrix used here???
         if("dec_tree_model" == model_id):
             return -dec_tree_model(csc_matrix(X_train),csr_matrix(X_test),y_train,y_test)
         if("log_reg_model" == model_id):
@@ -128,14 +141,9 @@ features = features[:-5]
 
 #X is all the occurances of the words for each text for each user
 X = data[features]
-X = X.values
 
-#added
-print(type(X))
-
-#faster stucture..
-#double check
-#is normalization sufficient???
+#Does this format work, is it necessary to convert to this first
+# X = X.values
 
 
 #ways to normalize...
@@ -143,36 +151,47 @@ print(type(X))
 #try other methods...
 
 
-#what is a csr matrix...
-#removed for compatible inputs for scalar.fit_transform(X)
-# X = csr_matrix(X)
 
-#first code change...
-#note: not in place...
-# X = normalize(X, "l2")
+#efficient row slicing...
+#good for removing samples...
+X = csr_matrix(X)
+
+
+# try: normalizing about samples or features...
+# if X is normalized about samples
+# if X is normalized about the features
+# no normalization was found to be the most effective...
+# should try different seeds tho
+# tutorial
+# https://www.digitalocean.com/community/tutorials/normalize-data-in-python
+# question (is row normalization good for counts?)
+# https://stackoverflow.com/questions/60275133/difference-between-row-and-column-normalization#:~:text=Column%20normalization%20is%20more%20prevalent,faster%20while%20used%20in%20deeplearning.
+
+
+X = normalize(X, norm = "l2", axis = 0)
+
+
+#efficient column slicing...
+#good for removing features...
+#like used in select k best...
+X = csc_matrix(X)
+
 #or
 # scalar = StandardScaler()
 # X = scalar.fit_transform(X)
-
-
-scalar = StandardScaler()
-
-X = scalar.fit_transform(X)
-
-#this is also removed for testing
-# X = csc_matrix(X)
 
 classification_tests = tests()
 Best_in_class = []
 out_df = pd.DataFrame()
  
 
-#how can you test 39 users when there is only 39 users for eahc personality
+#how can you test 39 users when there is only 39 users for each personality
 print ("Testing 39 users for each of the 16 meyers briggs personalities...\n")
 c  =0
 for item in pairs:  
     c = c+1
-    y = data[item] 
+    #not necessary to use list here...
+    y = data[item]
     local_optimas_dec  = []
     local_optimas_reg  = []
     local_optimas_for  = []
