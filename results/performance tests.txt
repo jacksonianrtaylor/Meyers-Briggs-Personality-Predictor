@@ -1,0 +1,37 @@
+csr conversion before normalization:
+rseed: 0 accuracy: 0.3589760000000001
+rseed: 5 accuracy: 0.3018112
+rseed: 10 accuracy: 0.35951916
+rseed: 7: accuracy: 0.3629925
+speed: ~200 seconds
+
+csr conversion before normalization then csc conversion:
+rseed: 0 accuracy: 
+rseed: 10 accuracy: 
+speed: ~200 seconds
+
+no normalization and no csr or csc conversion:
+rseed: 0 accuracy: 0.3835560600000001
+rseed: 10 accuracy: 
+speed: 988.732736825943 Seconds
+
+no normalization and csr conversion:
+rseed: 0 accuracy: 0.3835560600000001
+rseed: 10 accuracy: 0.4406400000000001
+speed: 457.07051491737366 seconds
+
+no normalization and csc conversion:
+rseed: 0 accuracy: 0.3835560600000001
+rseed: 10 accuracy: 
+speed: 463.398001909256 Seconds
+
+
+
+min max scalar: 
+X = X.values
+scaler = MinMaxScaler()
+X = scaler.fit_transform(X)
+
+rseed: 10
+time: 486.2200012207031 Seconds
+acc: 0.36012600000000006

@@ -24,10 +24,11 @@ from sklearn.feature_selection import chi2
 from sklearn.preprocessing import normalize
 #try new scalar 
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 
 #global random seed for consistent train test splits amoung otherthings..
-rseed = 0
+rseed = 10
 
 
 
@@ -143,7 +144,7 @@ features = features[:-5]
 X = data[features]
 
 #Does this format work, is it necessary to convert to this first
-# X = X.values
+X = X.values
 
 
 #ways to normalize...
@@ -152,10 +153,20 @@ X = data[features]
 
 
 
-#efficient row slicing...
-#good for removing samples...
-X = csr_matrix(X)
+# efficient row slicing...
+# good for removing samples...
+# this is required when using normalization
+# X = csr_matrix(X)
+# X = normalize(X, norm = "l2", axis = 0)
+# X = csc_matrix(X)
 
+#try minmax scaler...
+#this might work better than scaling unit norm
+#https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler.fit_transform
+
+
+scaler = MinMaxScaler()
+X = scaler.fit_transform(X)
 
 # try: normalizing about samples or features...
 # if X is normalized about samples
@@ -168,17 +179,20 @@ X = csr_matrix(X)
 # https://stackoverflow.com/questions/60275133/difference-between-row-and-column-normalization#:~:text=Column%20normalization%20is%20more%20prevalent,faster%20while%20used%20in%20deeplearning.
 
 
-X = normalize(X, norm = "l2", axis = 0)
-
+#https://stats.stackexchange.com/questions/82726/is-normalizing-the-features-always-good-for-classification
 
 #efficient column slicing...
 #good for removing features...
 #like used in select k best...
-X = csc_matrix(X)
+# X = csc_matrix(X)
 
 #or
 # scalar = StandardScaler()
 # X = scalar.fit_transform(X)
+
+#try minmax scaler...
+#this might work better than scaling unit norm
+#https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler.fit_transform
 
 classification_tests = tests()
 Best_in_class = []
