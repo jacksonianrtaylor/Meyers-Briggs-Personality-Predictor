@@ -1,28 +1,29 @@
-#Jackson Taylor
-#Student ID: 00001590147
-#CSCI 182: Web and Data Mining (35622)
+
 import pandas as pd
-import scipy
-import sklearn
 import time
-#may try seeding to constant integer for consitent results accross runtimes
+
+#Seeded to constant integer for consistent results accross runtimes
 import random
-import threading
 from threading import Thread
-from scipy.sparse import csc_matrix
+
 from scipy.sparse import csr_matrix
 from scipy.optimize import fminbound
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.feature_selection import SelectKBest
+
+
 from sklearn.feature_selection import chi2
-#old scalar
+from sklearn.feature_selection import SelectKBest
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+
+
+#some normalization techniques were tested that decreased the time for model convergence but produced worse results for accurcay scores
 from sklearn.preprocessing import normalize
-#try new scalar 
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
@@ -101,6 +102,10 @@ class tests():
         #i is the number of feature to use
         select = SelectKBest(chi2, k=i)
         #note input must be non-negative to use chi2 feature selection
+
+        #should test train split come before select k best???
+
+        
         X_new = select.fit_transform(X, y)
         return train_test_split(X_new,  y,test_size = 100, random_state = rseed)
 
@@ -164,9 +169,9 @@ X = X.values
 #this might work better than scaling unit norm
 #https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler.fit_transform
 
-
-scaler = MinMaxScaler()
-X = scaler.fit_transform(X)
+#min max scalar:
+# scaler = MinMaxScaler()
+# X = scaler.fit_transform(X)
 
 # try: normalizing about samples or features...
 # if X is normalized about samples
@@ -184,7 +189,10 @@ X = scaler.fit_transform(X)
 #efficient column slicing...
 #good for removing features...
 #like used in select k best...
-# X = csc_matrix(X)
+
+
+# ...
+X = csr_matrix(X)
 
 #or
 # scalar = StandardScaler()

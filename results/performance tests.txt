@@ -13,18 +13,20 @@ speed: ~200 seconds
 no normalization and no csr or csc conversion:
 rseed: 0 accuracy: 0.3835560600000001
 rseed: 10 accuracy: 
-speed: 988.732736825943 Seconds
+speed: 634.1131677627563 Seconds (new)
 
+csr is fastest....
 no normalization and csr conversion:
 rseed: 0 accuracy: 0.3835560600000001
 rseed: 10 accuracy: 0.4406400000000001
-speed: 457.07051491737366 seconds
+speed: 397.47571778297424 Seconds (new)
+speed: 395.5544261932373 Seconds (new)
 
 no normalization and csc conversion:
 rseed: 0 accuracy: 0.3835560600000001
-rseed: 10 accuracy: 
-speed: 463.398001909256 Seconds
-
+rseed: 10 accuracy: 0.4406400000000001
+speed: 400.41147685050964 Seconds (new)
+speed: 403.15729427337646 Seconds (new)
 
 
 min max scalar: 
