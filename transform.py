@@ -1,6 +1,4 @@
-#Jackson Taylor
-#Student ID: 00001590147
-#CSCI 182: Web and Data Mining (35622)
+
 import pandas as pd
 import nltk
 import csv
@@ -38,24 +36,25 @@ def load_data():
     f.close()   
     return data_by_type
 
-        
+# create a term frequency table with the terms as columns and each other row in the table is
+# a list of frequencies for the full word bank
+# this can probably be optmized
 def tf_full(pairs, data_by_type):   
-    #term frequency...
     word_bank = set()
+    #user X the word occurances for that user
     word_occurances = []
     pair_types = [[],[],[],[]]
     types = []
-    #for each personality type
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):  
-        #for 39 users of the personaility type
+        #there are exactly 39 users for each personailty type
         for i in range (0,39): 
             update_word_bank(word_bank ,data_by_type,i, w+x+y+z)           
     c = 0    
 
     #for each personality type
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]): 
-        #for 39 users of the personaility type
-        #note: this is the minimum count for a personality type
+        #there are exactly 39 users for each personailty type
+        #note: this is the minimum count for a personality type in the original dataset
         for i in range (0,39):   
             #create a dictionary with the keys the same as the word_bank set
             #and the values (the # of accorances initially set to 0)
@@ -86,11 +85,13 @@ def update_word_bank(word_bank,data_by_type,x, key):
     #look through the users posts and update the word bank
     #make sure words are not stopwords and must be word .isalpha()
     #make sure the lematized version is used
+    #may want to roll back this update to possiblly improve perf...
+    #there may be an ordering problem with dictionary keys...
     for post in data_by_type[key][x]:
-        tokens = word_tokenize(post)
-        tokens = [token for token in tokens if token.isalpha() and token not in stopwords.words('english')]
-        tokens  = [WordNetLemmatizer().lemmatize(token) for token in tokens]
-        word_bank.update(tokens)
+        tokens_1 = word_tokenize(post)
+        tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 if token.isalpha() 
+                    and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')]
+        word_bank.update(tokens_2)
         
                 
 def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key):       
@@ -98,11 +99,12 @@ def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key)
     #populate bag of words
     for post in data_by_type[key][x]:
         #seperate all the words and store in tokens
-        tokens = word_tokenize(post)
+        tokens_1 = word_tokenize(post)
         #check if the token is in word bank set for each token
         #this does not make sense because the tokens have not been lemmatized, isalpha ect. like above
-        tokens = [token for token in tokens if token in word_bank]
-        bag_of_words.extend(tokens)
+        tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
+                    if WordNetLemmatizer().lemmatize(token.lower()) in word_bank]
+        bag_of_words.extend(tokens_2)
         
     # go through the word bank set and find each occurance in the bag of words 
     # and update the value for group_word_occurances
