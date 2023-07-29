@@ -29,6 +29,8 @@ speed: 400.41147685050964 Seconds (new)
 speed: 403.15729427337646 Seconds (new)
 
 
+
+
 min max scalar: 
 X = X.values
 scaler = MinMaxScaler()
@@ -37,3 +39,21 @@ X = scaler.fit_transform(X)
 rseed: 10
 time: 486.2200012207031 Seconds
 acc: 0.36012600000000006
+
+
+with select k best fit to X_train...
+seed: 10
+100 test items: ~3.6
+50 test items: 0.45104592
+
+seed: 2
+50 test items: 0.43819776
+
+seed: 5
+50 test items: 0.4487892799999999
+
+
+
+need to test with more data for higher accuracy...
+try the original dataset again for more data
+

@@ -28,12 +28,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
 
-#global random seed for consistent train test splits amoung otherthings..
-rseed = 10
+#global random seed for consistent train test splits 
+#and randomstates for certain models
+rseed = 5
 
 
 
-#Inherits from the Thread class so that a version can be created that returns function parameters return value in the join method
+#Inherits from the Thread class so that a version can be created that...
+#returns function parameters return value in the join method
 class return_thread(Thread):
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs={}, Verbose=None):
@@ -49,7 +51,7 @@ class return_thread(Thread):
 
 #classification models
 #they all return the accuracy score
-#which is simply the number of correct predictions over the number of predictions
+#which is simply the number of correct predictions divided by the number of predictions
 def naive_bays_model(X_train,X_test,y_train,y_test):
     naive_bays = MultinomialNB()
     naive_bays.fit(X_train,y_train)
@@ -89,40 +91,49 @@ def dec_tree_model(X_train,X_test,y_train,y_test):
     
 
 #test class
+#this is what is used to test the accruacy of models for the number of featurs inputs...
+#that are selelcted by chi-squared
+#remebr teh inputs are simple word counts
 class tests():   
     def __init__(self):
-        #seed remains the same for all test cases in order to make comparisons to multiple classifiers
-        #the seed is still random so the same outcome will not happen everytime
-
-        #not used at the moment...
+        #This is used for consistent train test splits for a given runtime...
+        #for all models
+        #however, it has been replaced with a constant seed...
+        #to produce simlair test train splits as well as consistencey over runtimes
         self.seed = random.randint(0, 42) 
 
     def preprocess(self, i,X, y):
-        #chi squared feature selection and returns the X_train,X_test,y_train,y_test
-        #i is the number of feature to use
-        select = SelectKBest(chi2, k=i)
-        #note input must be non-negative to use chi2 feature selection
 
+        #note input must be non-negative to use chi2 feature selection
         #should test train split come before select k best???
 
-        
-        X_new = select.fit_transform(X, y)
-        return train_test_split(X_new,  y,test_size = 100, random_state = rseed)
+        #note: the current configuration uses only the train data to fit the selectKbest selector
+        #This is to simulate a simple case of testing the model with new data
+        #the test data can use the selector but should not contribute to fiting it
+
+        X_train,X_test,y_train,y_test = train_test_split(X,  y,test_size = 50, random_state = rseed)
+
+        selector = SelectKBest(chi2, k=i)
+        selector.fit(X_train, y_train)
+        X_train = selector.transform(X_train)
+        X_test = selector.transform(X_test)
+
+        return X_train,X_test,y_train,y_test
 
     def test_features(self,i, model_id,X, y ):
         #https://blog.finxter.com/python-list-copy/
         #copy is atomic and rest of the variables are thread safe in the current namespace
         #this also re-intitializes the data in the local scope
         i = int(i)
-        #what is the point of this!!!
-        #to keep the operations atomic???...
         X = X.copy()
         y = y.copy()    
         X_train,X_test,y_train,y_test = self.preprocess(i,X, y)   
 
-        #perform model selection  
-        #why is the negation returned???
-        #why is the specific use of csc_matrix and csr_matrix used here???
+        #model selection
+        #the negation is returned because the optmizer that uses this function...
+        #tries to find the minimum by default.
+        #the negation of the minimum becomes the maximum
+
         if("dec_tree_model" == model_id):
             return -dec_tree_model(X_train,X_test,y_train,y_test)
         if("log_reg_model" == model_id):
@@ -132,7 +143,8 @@ class tests():
         if("naive_bays_model" == model_id):
             return -naive_bays_model(X_train,X_test,y_train,y_test)
         
-           
+
+#main
 #load data from tf_matrix.csv
 time_t = time.time()
 f = open('tf_matrix.csv', 'r', encoding="utf-8")
@@ -145,75 +157,32 @@ pairs  =  ["_I_E_","_N_S_", "_T_F_", "_J_P_"]
 features = list(data.keys())
 features = features[:-5]
 
-#X is all the occurances of the words for each text for each user
+#X is all the occurances of the words for each text for each user if data frame form
 X = data[features]
 
-#Does this format work, is it necessary to convert to this first
-X = X.values
+# convert data frame to numpy array
+# This does not seem to be necessary
+# X = X.values
 
-
-#ways to normalize...
-#ttps://www.digitalocean.com/community/tutorials/normalize-data-in-python
-#try other methods...
-
-
-
-# efficient row slicing...
-# good for removing samples...
-# this is required when using normalization
-# X = csr_matrix(X)
-# X = normalize(X, norm = "l2", axis = 0)
-# X = csc_matrix(X)
-
-#try minmax scaler...
-#this might work better than scaling unit norm
-#https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler.fit_transform
-
-#min max scalar:
-# scaler = MinMaxScaler()
-# X = scaler.fit_transform(X)
-
-# try: normalizing about samples or features...
-# if X is normalized about samples
-# if X is normalized about the features
-# no normalization was found to be the most effective...
-# should try different seeds tho
-# tutorial
-# https://www.digitalocean.com/community/tutorials/normalize-data-in-python
-# question (is row normalization good for counts?) answer (yes)
-# https://stackoverflow.com/questions/60275133/difference-between-row-and-column-normalization#:~:text=Column%20normalization%20is%20more%20prevalent,faster%20while%20used%20in%20deeplearning.
-
-
-#https://stats.stackexchange.com/questions/82726/is-normalizing-the-features-always-good-for-classification
-
-#efficient column slicing...
-#good for removing features...
-#like used in select k best...
-
-
-# ...
+#convert to csr matrix becuase the numpy array is sparse
 X = csr_matrix(X)
 
-#or
-# scalar = StandardScaler()
-# X = scalar.fit_transform(X)
-
-#try minmax scaler...
-#this might work better than scaling unit norm
-#https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler.fit_transform
-
+#instantiate an object
 classification_tests = tests()
+#the best model for predicting each pair
 Best_in_class = []
+
+#used to output to the rsults file
 out_df = pd.DataFrame()
  
 
-#how can you test 39 users when there is only 39 users for each personality
 print ("Testing 39 users for each of the 16 meyers briggs personalities...\n")
 c  =0
 for item in pairs:  
     c = c+1
     #not necessary to use list here...
     y = data[item]
+    #each model is tested for each pair prediction
     local_optimas_dec  = []
     local_optimas_reg  = []
     local_optimas_for  = []
@@ -224,8 +193,9 @@ for item in pairs:
     print(item, "Classification:")
     while(i<6):           
         
-        #uses multithreading for a small to medium improvements in runtime   
-        #the negation is used because the above funtions finds the fminbound and we want the opposite 
+        #uses multithreading for small to medium improvements in runtime   
+        #the negation is used because the above funtions finds the fminbound for accuracy
+        # and the opposite is the maximum accuracy 
         t1 = return_thread(group=None,target=fminbound,
                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("dec_tree_model",X, y), "full_output" : True, "disp" :0})
         t2 = return_thread(group=None,target=fminbound,
@@ -244,7 +214,7 @@ for item in pairs:
         local_optima_3 = t3.join()
         local_optima_4 = t4.join()   
         
-        # slower without the use of multithreading
+        # slower and without the use of multithreading
         # local_optima_1 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("dec_tree_model",X, y), full_output  = True, disp   =0)
         # local_optima_2 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("log_reg_model",X, y), full_output  = True, disp   =0)
         # local_optima_3 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("rand_forest_model",X, y), full_output  = True, disp   =0)
@@ -270,7 +240,8 @@ for item in pairs:
         #then iterates again with i = i+1
         i += 1
 
-    #find the best number features for each model
+    #find the best number features for each model for a certain personality pair
+    #check to see how pairs/tuples are sorted...
     local_optimas_dec.sort(reverse  = True) 
     local_optimas_reg.sort(reverse  = True)
     local_optimas_for.sort(reverse  = True)
@@ -318,6 +289,9 @@ print("\nMyers Briggs Prediction from the best of each Classifier:")
 
 
 #using the law of independence and the best scored model for each personality pair...
+#Note: it is important to state in the readme that one personailty pair prediction does not have an impact on 
+#another personality pair since there is the same number of people for each of the 16 personailties
+#This eliminates bais for common vs uncommon personalities
 #find the absoluted best model
 product  = 1
 for item in Best_in_class:
@@ -336,6 +310,11 @@ out_file = open('results.csv', 'w', encoding="utf-8")
 out_df.to_csv(out_file,index  = False)
 out_file.close()    
 print("Full compute time:",time.time()-time_t,"Seconds")
+
+
+#Note: it is important to state in the readme that one personailty pair prediction does not have an impact on 
+#another personality pair since there is the same number of people for each of the 16 personailties
+#This eliminates bais for common vs uncommon personalities
 
 
 

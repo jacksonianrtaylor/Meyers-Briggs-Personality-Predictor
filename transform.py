@@ -14,6 +14,8 @@ from nltk.stem import WordNetLemmatizer
 
 nltk.download('punkt')
 nltk.download('words')
+nltk.download('stopwords')
+nltk.download('wordnet')
 
 
 def load_data():
@@ -149,3 +151,7 @@ for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):
 
 tf_full(pairs, data_by_type)
 print("Full compute time:",time.time() - time_t,"Seconds")
+
+
+#Big Problem:
+#Capital versions and lower case versions of words are both in the final tf_matrix...
