@@ -1,3 +1,2 @@
-with next test 1: 0.48111839999999995
-
-with next test 2: 
+rseed = 10 for both prgrams: 0.39674879999999996
+rseed = 5 for both prgrams: 0.5212838399999999

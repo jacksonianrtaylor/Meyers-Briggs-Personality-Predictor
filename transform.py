@@ -12,6 +12,7 @@ from nltk.corpus import words
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from ordered_set import OrderedSet
 
 #downloads needed to work locally
 nltk.download('punkt')
@@ -21,7 +22,7 @@ nltk.download('wordnet')
 
 
 #random seed
-rseed = 10
+rseed = 5
 random.seed(rseed)
 
 # load and return the data_by_type variable populated from the mbti_1.csv
@@ -59,8 +60,9 @@ def load_data():
 
 
 def tf_full(pairs, data_by_type):
-    #set of all words amoung every users post   
-    word_bank = set()
+    #set of all words amoung every users post 
+    #change to dict to emulate an ordered set...  
+    word_bank = OrderedSet()
     #count of words occurances for every user
     word_occurances = []
     #this becomes a list of 4 lists of personality bits 
@@ -82,6 +84,8 @@ def tf_full(pairs, data_by_type):
         for i in range (0,39):   
             #create a dictionary with the keys the same as the word_bank set
             #and the values (the # of accorances initially set to 0)
+
+            #how do we know that he order is consistent when word_bank is a set???
             group_word_occurances = dict.fromkeys(list(word_bank),0)  
 
             #populate the real count values in group_word_occurances...
@@ -118,6 +122,7 @@ def update_word_bank(word_bank,data_by_type,x, key):
         tokens_1 = word_tokenize(post)
         tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 if token.isalpha() 
                     and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')]
+        
         word_bank.update(tokens_2)
         
                 
@@ -128,7 +133,6 @@ def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key)
         #seperate all the words and store in tokens
         tokens_1 = word_tokenize(post)
         #check if the token is in word bank set for each token
-        #this does not make sense because the tokens have not been lemmatized, isalpha ect. like above
         tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
                     if WordNetLemmatizer().lemmatize(token.lower()) in word_bank]
         bag_of_words.extend(tokens_2)
