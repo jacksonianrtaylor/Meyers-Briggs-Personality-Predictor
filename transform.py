@@ -25,31 +25,22 @@ nltk.download('wordnet')
 rseed = 5
 random.seed(rseed)
 
-# load and return the data_by_type variable populated from the mbti_1.csv
-# data_by_type is a dictionary of personality types to list of users
+# load and return the data_by_type and data_by_type_full variables populated from the mbti_1.csv
+# data_by_type is a dictionary of personality types to list of users of that personality
 # each user is defined by a list of 50 posts that they made
 def load_data():
     f = open('mbti_1.csv', newline='', encoding="utf-8")
     data = csv.reader(f)
-    # what does next(data) do???
-    # this cuts the first row which are column labels
+    # next(data) cuts the first row which are column labels
     next(data)
     data_by_type_full = dict()
-    #populate data by type
     for row in data:   
         if ((row[0] not in data_by_type_full.keys())):
             data_by_type_full[row[0]] = []            
-        posts = row[1].split("|||")
-        user  = []
-        #this loop and directly below it is not needed...
-        #just use data_by_type[row[0]].append(row[1].split("|||"))
-        for post in posts:
-            user.append(post)
-        data_by_type_full[row[0]].append(user) 
-
-    #this is data_by_type_full but only 39 randomly selected users for each personality
-    #there are exactly 39 users for each personailty type because that is the minimum number of users...
-    #for the 16 persoanlity types in the original data
+        data_by_type_full[row[0]].append(row[1].split("|||"))
+    #Only a randomly selelcted 39 users of each for the 16 personality type are used to train the models
+    #That is the number of users for the rarest personality
+    #This way there is no popularity bias built into the model
     data_by_type = dict()
     for key in data_by_type_full.keys():
         data_by_type[key] = random.sample(data_by_type_full[key], 39)
@@ -58,34 +49,31 @@ def load_data():
 
 
 
-
+#Ouputs the data to tf_matrix in a format ready for the analysis section
 def tf_full(pairs, data_by_type):
-    #set of all words amoung every users post 
-    #change to dict to emulate an ordered set...  
+    #the word bank is used because all the unqiue terms need to be in a consistent order
     word_bank = OrderedSet()
     #count of words occurances for every user
+    #the counts themselves are in the order of the word bank
     word_occurances = []
-    #this becomes a list of 4 lists of personality bits 
-    #this could instead be a list of lists of 4 personality bits
+    #this becomes a list of 4 lists of personality bits for each personality pair
     pair_types = [[],[],[],[]]
     types = []
+    #populate word_bank
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):  
-        #there are exactly 39 users for each personailty type because that is the minimum number of users...
-        #for the 16 persoanlity types in the original data
-        #popularity bias should not be introduced
         for i in range (0,39): 
             update_word_bank(word_bank ,data_by_type,i, w+x+y+z)           
     c = 0    
 
-    #for each personality type
+    #populate word_occurances and pairs
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]): 
-        #there are exactly 39 users for each personailty type
-        #note: this is the minimum count for a personality type in the original dataset
         for i in range (0,39):   
             #create a dictionary with the keys the same as the word_bank set
             #and the values (the # of accorances initially set to 0)
 
-            #how do we know that he order is consistent when word_bank is a set???
+            #how do we know that the order is consistent when word_bank is a set???
+            #does this need to be a dcitionary???
+            #can it also be a list???
             group_word_occurances = dict.fromkeys(list(word_bank),0)  
 
             #populate the real count values in group_word_occurances...
