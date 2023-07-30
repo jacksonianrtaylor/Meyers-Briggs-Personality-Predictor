@@ -4,49 +4,69 @@ import nltk
 import csv
 import itertools
 import time
+import random
+
+#not used
 from nltk.corpus import words
+
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
-
+#downloads needed to work locally
 nltk.download('punkt')
 nltk.download('words')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
 
+#random seed
+rseed = 10
+random.seed(rseed)
+
+# load and return the data_by_type variable populated from the mbti_1.csv
+# data_by_type is a dictionary of personality types to list of users
+# each user is defined by a list of 50 posts that they made
 def load_data():
-    #load and return the data_by_type variable
-    #this is a dictionary of personality types to list of users
-    #each user is a list of posts
     f = open('mbti_1.csv', newline='', encoding="utf-8")
     data = csv.reader(f)
-    #what does next(data) do???
+    # what does next(data) do???
+    # this cuts the first row which are column labels
     next(data)
-    data_by_type = {}
+    data_by_type_full = dict()
+    #populate data by type
     for row in data:   
-        if ((row[0] not in data_by_type.keys())):
-            data_by_type[row[0]] = []            
+        if ((row[0] not in data_by_type_full.keys())):
+            data_by_type_full[row[0]] = []            
         posts = row[1].split("|||")
         user  = []
+        #this loop and directly below it is not needed...
+        #just use data_by_type[row[0]].append(row[1].split("|||"))
         for post in posts:
             user.append(post)
-        data_by_type[row[0]].append(user)       
-    f.close()   
-    return data_by_type
+        data_by_type_full[row[0]].append(user) 
 
-# create a term frequency table with the terms as columns and each other row in the table is
-# a list of frequencies for the full word bank
-# this can probably be optmized
+    #this is data_by_type_full but only 39 randomly selected users for each personality
+    #there are exactly 39 users for each personailty type because that is the minimum number of users...
+    #for the 16 persoanlity types in the original data
+    data_by_type = dict()
+    for key in data_by_type_full.keys():
+        data_by_type[key] = random.sample(data_by_type_full[key], 39)
+    f.close()   
+    return data_by_type, data_by_type_full
+
+
+
+
 def tf_full(pairs, data_by_type):   
     word_bank = set()
-    #user X the word occurances for that user
     word_occurances = []
     pair_types = [[],[],[],[]]
     types = []
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):  
-        #there are exactly 39 users for each personailty type
+        #there are exactly 39 users for each personailty type because that is the minimum number of users...
+        #for the 16 persoanlity types in the original data
+        #popularity bias should not be introduced
         for i in range (0,39): 
             update_word_bank(word_bank ,data_by_type,i, w+x+y+z)           
     c = 0    
@@ -59,20 +79,24 @@ def tf_full(pairs, data_by_type):
             #create a dictionary with the keys the same as the word_bank set
             #and the values (the # of accorances initially set to 0)
             group_word_occurances = dict.fromkeys(list(word_bank),0)  
+
             #populate the real count values in group_word_occurances...
             update_word_occurances(word_bank, group_word_occurances, i, data_by_type, w+x+y+z) 
+
             #extract only the occurances without the keys and append to word_occurances
+            #Do the values hold consistent order for each iteration??? (yes)
+            #https://stackoverflow.com/questions/835092/python-dictionary-are-keys-and-values-always-the-same-order#:~:text=Yes%2C%20what%20you%20observed%20is,order%20as%20the%20corresponding%20lists.
             word_occurances.append(list(group_word_occurances.values()))
 
             #pairs is a list of the personaility duos
             #w+x+y+z is a single string representing a single personality
             #pair_types is a list of booleans to represent each personality pair
-            #this populates pair_types
 
+            #this populates pair_types
             #add the same value to pair_types the for all 39 sample users of type w+x+y+z
             populate_pairs(pair_types, pairs, w+x+y+z)
 
-            # c is an integer to represent personaility
+            # c is an integer to represent personaility (0-15)
             # same for all 39 sample users of type w+x+y+z
             types.append(c)    
         # starts at 0 and goes to 15   
@@ -82,11 +106,10 @@ def tf_full(pairs, data_by_type):
     
     
 def update_word_bank(word_bank,data_by_type,x, key):
-    #look through the users posts and update the word bank
-    #make sure words are not stopwords and must be word .isalpha()
-    #make sure the lematized version is used
-    #may want to roll back this update to possiblly improve perf...
-    #there may be an ordering problem with dictionary keys...
+    #look through a single users posts and update the word bank
+
+    #here it is possible to randomly select the users without replacement rather than taking the first 39 users
+    #or the order can simply be scrambled before hand...
     for post in data_by_type[key][x]:
         tokens_1 = word_tokenize(post)
         tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 if token.isalpha() 
@@ -108,8 +131,11 @@ def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key)
         
     # go through the word bank set and find each occurance in the bag of words 
     # and update the value for group_word_occurances
-    # this is time consuming an inefficent  
-    # this does not make sense because insatnces in bag of words has not been lemmatized, isalpha ect. like above               
+    # note: order of the word bank does not matter since the group_word_occurances is a dictionary  
+
+    # this might be faster if the bag of words were sorted then counted and put into
+    # group_word_occurances O(n^2) vs O(nlogn) + O(n)
+
     for word in word_bank:
         for instance in bag_of_words:
             if instance == word:
@@ -141,7 +167,7 @@ def to_csv(file_name, word_occurances, word_bank, pair_types,  types):
     f.close()    
     
 time_t = time.time()
-data_by_type = load_data()                                
+data_by_type, data_by_type_full = load_data()                                
 pairs  = [['I', 'E'],['N', 'S'],['T', 'F'],['J', 'P']]
 
 
@@ -151,9 +177,8 @@ for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):
     
 
 
-tf_full(pairs, data_by_type)
+tf_full(pairs, data_by_type_full)
 print("Full compute time:",time.time() - time_t,"Seconds")
 
 
-#Big Problem:
-#Capital versions and lower case versions of words are both in the final tf_matrix...
+#idea: the 39 users of each personality should be chosen randomly...
