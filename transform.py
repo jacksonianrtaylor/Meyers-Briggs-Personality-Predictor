@@ -58,9 +58,13 @@ def load_data():
 
 
 
-def tf_full(pairs, data_by_type):   
+def tf_full(pairs, data_by_type):
+    #set of all words amoung every users post   
     word_bank = set()
+    #count of words occurances for every user
     word_occurances = []
+    #this becomes a list of 4 lists of personality bits 
+    #this could instead be a list of lists of 4 personality bits
     pair_types = [[],[],[],[]]
     types = []
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):  
@@ -153,7 +157,7 @@ def populate_pairs(pair_types, pairs, key):
 
            
 def to_csv(file_name, word_occurances, word_bank, pair_types,  types):   
-    #the list of intial columns is the word bank  
+    #note: word_occurances does not necessarily line up with list(word_bank)
     df = pd.DataFrame(data=word_occurances, columns=list(word_bank))  
     #these columns are the personailty columns 
     df["_I_E_"] = pair_types[0]
@@ -167,17 +171,18 @@ def to_csv(file_name, word_occurances, word_bank, pair_types,  types):
     f.close()    
     
 time_t = time.time()
+#note: 
 data_by_type, data_by_type_full = load_data()                                
 pairs  = [['I', 'E'],['N', 'S'],['T', 'F'],['J', 'P']]
 
 
 print("Data per Personality:")
 for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):
-    print(w+x+y+z, len(data_by_type[w+x+y+z]))
+    print(w+x+y+z, len(data_by_type_full[w+x+y+z]))
     
 
 
-tf_full(pairs, data_by_type_full)
+tf_full(pairs, data_by_type)
 print("Full compute time:",time.time() - time_t,"Seconds")
 
 
