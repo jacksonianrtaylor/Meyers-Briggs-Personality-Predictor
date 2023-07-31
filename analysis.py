@@ -278,28 +278,27 @@ for item in pairs:
 #main
 results = []
 
-#used to print results
+#used when printing results
 classifiers = ["Decision Tree: ", "Logistic Regression: ", "Random Forest: ", "Naive Bays: "]
 
-#header
+#header 1
 print("Complete Myers Briggs Prediction for individual Classifiers:")
 
 for x in range (0,4):
+    #product is the score for a models performance in prediting all personality pairs correctly
+    #it is a theoretical score using law of independence
     product =1
-    #Best of class is a list of optimal scores for each model for each personality pair
+    #Best in class is a list of optimal scores for each model for each personality pair
     #item[x] is a score for the xth personailty pair
     for item in Best_in_class:
+        # item controls the personailty pair in question
+        # x controls the model
         product*= item[x]
-    #print the overall score using law of independence and append to results
     print(classifiers[x], product)
     results.append(str(classifiers[x])+ str(product))
 
-#header
+#header 2
 print("\nMyers Briggs Prediction from the best of each Classifier:")
-
-
-#using the law of independence and the best scored model for each personality pair...
-#This eliminates bais for common vs uncommon personalities
 
 #find the absolute best model
 product  = 1
@@ -307,14 +306,15 @@ for item in Best_in_class:
     item.sort(reverse  = True)
     #for testing search for "[" ...
     #test passed
-    print(item)
+    # print(item)
     product*= item[0]
 
-print(product)
 
-#this shows the score using the same model for all the pair precitions
+#this shows the score by using a model consistently for all the pair precitions
 out_df["Best in Class:"] = results
-#this shows the score using the best model for each pair prediction
+
+#this shows the theoretical score using the best model for each pair prediction
+print(product)
 out_df["Overall Best"] = [str(product), "", "","" ]
 
 #outputs
@@ -330,7 +330,8 @@ print("Full compute time:",time.time()-time_t,"Seconds")
 #another personality pair since there is the same number of people for each of the 16 personalilties
 #This eliminates bais for common vs uncommon personalities
 #it means that a full prediction is not made but is theoreticaly accurate based on the predictions of each pair
-
+#using the law of independence and the best scored model for each personality pair...
+#This eliminates bais for common vs uncommon personalities
 
 
 
