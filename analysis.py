@@ -90,27 +90,22 @@ def dec_tree_model(X_train,X_test,y_train,y_test):
     return scores[0]    
     
 
-#test class
-#this is what is used to test the accruacy of models for the number of featurs inputs...
-#that are selelcted by chi-squared
-#remebr teh inputs are simple word counts
+#tests class
+#this is what is used to test the accuracy of models for varied number of feature inputs...
+#that are selelcted with chi-squared feature selection
+#the inputs are simply word counts
 class tests():   
     def __init__(self):
-        #This is used for consistent train test splits for a given runtime...
-        #for all models
+        #This is used for consistent train test splits for a given runtime for all models
         #however, it has been replaced with a constant seed...
-        #to produce simlair test train splits as well as consistencey over runtimes
+        #to produce simlair consistencey over runtimes
+        #see rseed variable
         self.seed = random.randint(0, 42) 
 
     def preprocess(self, i,X, y):
-
-        #note input must be non-negative to use chi2 feature selection
-        #should test train split come before select k best???
-
         #note: the current configuration uses only the train data to fit the selectKbest selector
         #This is to simulate a simple case of testing the model with new data
-        #the test data can use the selector but should not contribute to fiting it
-
+        #the test data can use the "selector" but should not contribute to fiting it
         X_train,X_test,y_train,y_test = train_test_split(X,  y,test_size = 50, random_state = rseed)
 
         selector = SelectKBest(chi2, k=i)
@@ -120,7 +115,7 @@ class tests():
 
         return X_train,X_test,y_train,y_test
 
-    def test_features(self,i, model_id,X, y ):
+    def test_features(self,i, model_id, X, y ):
         #https://blog.finxter.com/python-list-copy/
         #copy is atomic and rest of the variables are thread safe in the current namespace
         #this also re-intitializes the data in the local scope
@@ -129,10 +124,11 @@ class tests():
         y = y.copy()    
         X_train,X_test,y_train,y_test = self.preprocess(i,X, y)   
 
-        #model selection
+        #model selector
         #the negation is returned because the optmizer that uses this function...
         #tries to find the minimum by default.
-        #the negation of the minimum becomes the maximum
+        #The optmizers outputs results are negative accuracy scores that can be
+        #negated again to find real accuracy scores
 
         if("dec_tree_model" == model_id):
             return -dec_tree_model(X_train,X_test,y_train,y_test)
@@ -145,42 +141,44 @@ class tests():
         
 
 #main
-#load data from tf_matrix.csv
+#load data from tf_matrix.csv that was populated by the transform program
 time_t = time.time()
 f = open('tf_matrix.csv', 'r', encoding="utf-8")
 data = pd.read_csv(f, header=0) 
 
 #create pairs list
+#used for outputs
 pairs  =  ["_I_E_","_N_S_", "_T_F_", "_J_P_"] 
 
-#features are all word/tokens the occur in at least one text
+#features are all word/tokens that occur in at least one text
 features = list(data.keys())
+#omit all but the words
 features = features[:-5]
 
-#X is all the occurances of the words for each text for each user if data frame form
+#X is all the occurances of the words for each user
 X = data[features]
 
-# convert data frame to numpy array
-# This does not seem to be necessary
-# X = X.values
+# convert data frame to numpy array with just counts
+# This may not be necessary...
+X = X.values
 
 #convert to csr matrix becuase the numpy array is sparse
 X = csr_matrix(X)
 
-#instantiate an object
 classification_tests = tests()
-#the best model for predicting each pair
+
+#the most accurate model for predicting each pair
 Best_in_class = []
 
-#used to output to the rsults file
+#used to output to the results file
 out_df = pd.DataFrame()
  
 
-print ("Testing 39 users for each of the 16 meyers briggs personalities...\n")
-c  =0
+print("Testing 39 users for each of the 16 meyers briggs personalities...\n")
+c = 0
 for item in pairs:  
     c = c+1
-    #not necessary to use list here...
+    #not necessary to use list(data[item]) here...
     y = data[item]
     #each model is tested for each pair prediction
     local_optimas_dec  = []
@@ -193,9 +191,13 @@ for item in pairs:
     print(item, "Classification:")
     while(i<6):           
         
-        #uses multithreading for small to medium improvements in runtime   
-        #the negation is used because the above funtions finds the fminbound for accuracy
-        # and the opposite is the maximum accuracy 
+        #uses multithreading for small to medium improvements in runtime  
+
+        #the negation is returned from test_features because the optmizer that uses this function...
+        #tries to find the minimum by default.
+        #The optmizers outputs results includes accuracy scores that can be...
+        #negated again to find real accuracy scores
+
         t1 = return_thread(group=None,target=fminbound,
                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("dec_tree_model",X, y), "full_output" : True, "disp" :0})
         t2 = return_thread(group=None,target=fminbound,
@@ -220,7 +222,7 @@ for item in pairs:
         # local_optima_3 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("rand_forest_model",X, y), full_output  = True, disp   =0)
         # local_optima_4 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("naive_bays_model",X, y), full_output  = True, disp   =0)
         
-        #the negation is used because the above funtions finds the fminbound and we want the opposite
+        #the negation is returned (see above)
         local_optimas_dec.append((-local_optima_1[1], int(local_optima_1[0])))
         local_optimas_reg.append((-local_optima_2[1], int(local_optima_2[0])))
         local_optimas_for.append((-local_optima_3[1], int(local_optima_3[0])))
@@ -228,32 +230,34 @@ for item in pairs:
 
 
         #local_optima_1[1] is a score
-        #and local_optima_1[0] is number of features used that gave the optimal score 
+        #and local_optima_1[0] is number of features used that gave the accuracy score 
+        #this is to show progress but may be out of order with use of multithreading
+
         print("Iteration:", i+1)
         print("Decision Tree Test:",  "Score:",-local_optima_1[1], "Features:", int(local_optima_1[0]))                       
         print("Logistic Regression Test:",  "Score:",-local_optima_2[1], "Features:", int(local_optima_2[0]))        
         print("Random Forest Test:", "Score:",-local_optima_3[1], "Features:", int(local_optima_3[0]))       
         print("Naive Bays Test:",  "Score:",-local_optima_4[1], "Features:", int(local_optima_4[0]),"\n")   
         
-        #i controls the number of features
+        #i controls the number of features to optimize in the model
         #the optimizer finds the best number of features within bounds (i)*gap_size+1 and (i+1)*gap_size+1
         #then iterates again with i = i+1
         i += 1
 
-    #find the best number features for each model for a certain personality pair
-    #check to see how pairs/tuples are sorted...
+    #find the best accuracy for the best number of features for each model for a certain personality pair
     local_optimas_dec.sort(reverse  = True) 
     local_optimas_reg.sort(reverse  = True)
     local_optimas_for.sort(reverse  = True)
     local_optimas_bays.sort(reverse  = True)
     
+    #outputs to be used later in results.csv
     out_df[item] = ["Decision Tree: "+"Features: "+str(local_optimas_dec[0][1])+" Accuracy: "+str(local_optimas_dec[0][0])
     ,"Logistic Regession: "+"Features: "+str(local_optimas_reg[0][1])+" Accuracy: "+str(local_optimas_reg[0][0])
     ,"Random Forest: "+ "Features: "+str(local_optimas_for[0][1])+" Accuracy: "+str(local_optimas_for[0][0])
     ,"Naive Bays: "+ "Features: "+str(local_optimas_bays[0][1])+" Accuracy: "+str(local_optimas_bays[0][0])]
     
 
-    #print all the results of the optimized models
+    #print above results directly above
     print(item, "Classification:")
     print("Best Predictor Function Scores:")
     print("Decision Tree:","Features:",local_optimas_dec[0][1],"Accuracy:",local_optimas_dec[0][0])
@@ -262,8 +266,8 @@ for item in pairs:
     print("Naive Bays:", "Features:",local_optimas_bays[0][1],"Accuracy:",local_optimas_bays[0][0],"\n")
     
     #Best of class is a list of optimal scores for each model for each personality pair
-    #note that this append is just for a single personality pair
-    #note local_optimas_dec[0][0] gives the best score since local_optimas_dec is sorted backwards
+    #note: This append is just for a single personality pair
+    #note: local_optimas_dec[0][0] gives the best decision tree score since local_optimas_dec is sorted backwards
     Best_in_class.append([local_optimas_dec[0][0], 
                           local_optimas_reg[0][0], 
                           local_optimas_for[0][0], 
@@ -271,9 +275,13 @@ for item in pairs:
 
 
 
-#this is the main code
+#main
 results = []
+
+#used to print results
 classifiers = ["Decision Tree: ", "Logistic Regression: ", "Random Forest: ", "Naive Bays: "]
+
+#header
 print("Complete Myers Briggs Prediction for individual Classifiers:")
 
 for x in range (0,4):
@@ -282,20 +290,24 @@ for x in range (0,4):
     #item[x] is a score for the xth personailty pair
     for item in Best_in_class:
         product*= item[x]
-    #print the overall score and append to results using law of independence
+    #print the overall score using law of independence and append to results
     print(classifiers[x], product)
     results.append(str(classifiers[x])+ str(product))
+
+#header
 print("\nMyers Briggs Prediction from the best of each Classifier:")
 
 
 #using the law of independence and the best scored model for each personality pair...
-#Note: it is important to state in the readme that one personailty pair prediction does not have an impact on 
-#another personality pair since there is the same number of people for each of the 16 personailties
 #This eliminates bais for common vs uncommon personalities
-#find the absoluted best model
+
+#find the absolute best model
 product  = 1
 for item in Best_in_class:
     item.sort(reverse  = True)
+    #for testing search for "[" ...
+    #test passed
+    print(item)
     product*= item[0]
 
 print(product)
@@ -308,13 +320,16 @@ out_df["Overall Best"] = [str(product), "", "","" ]
 #outputs
 out_file = open('results.csv', 'w', encoding="utf-8")
 out_df.to_csv(out_file,index  = False)
-out_file.close()    
+out_file.close()   
+
+#time to compute
 print("Full compute time:",time.time()-time_t,"Seconds")
 
 
-#Note: it is important to state in the readme that one personailty pair prediction does not have an impact on 
-#another personality pair since there is the same number of people for each of the 16 personailties
+#Note: it is important to state in the readme that one personailty pair prediction should not have an impact on 
+#another personality pair since there is the same number of people for each of the 16 personalilties
 #This eliminates bais for common vs uncommon personalities
+#it means that a full prediction is not made but is theoreticaly accurate based on the predictions of each pair
 
 
 
