@@ -71,8 +71,6 @@ def tf_full(pairs, data_by_type):
             update_word_occurances(word_bank, group_word_occurances, i, data_by_type, w+x+y+z) 
             #append group_word_occurances for a user to word_occurances
             word_occurances.append(group_word_occurances)
-            #pairs is a list of the personality pairs with 16 combinations
-            #w+x+y+z is a single string representing a single personality
             #this populates pair_types
             populate_pairs(pair_types, pairs, w+x+y+z)
             # c is an integer to represent personaility with an integer (0-15)
