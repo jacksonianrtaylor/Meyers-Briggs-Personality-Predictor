@@ -27,6 +27,8 @@ More can be learned here:
 https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 
+
+
 Process: 
 
 The process involves training multiple models on each personality pair
@@ -58,3 +60,7 @@ https://docs.python.org/3/library/venv.html
 
 You may use the requirements.txt to install the require=d package versions
 But it shoud still work with the most up to date version of python and the installed packages
+
+
+
+

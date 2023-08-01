@@ -6,13 +6,13 @@ import itertools
 import time
 import random
 
-#not used
-from nltk.corpus import words
-
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from ordered_set import OrderedSet
+
+#not used
+from nltk.corpus import words
 
 #downloads needed to work locally
 nltk.download('punkt')
@@ -24,7 +24,7 @@ nltk.download('wordnet')
 
 # load and return the data_by_type and data_by_type_full variables populated from mbti_1.csv
 # They are both a dictionary of personality types to list of users of that personality
-# each user is defined by a list of 50 posts that they made
+# each user is defined by a list of 50 online posts that they made
 def load_data():
     f = open('mbti_1.csv', newline='', encoding="utf-8")
     data = csv.reader(f)
@@ -37,7 +37,7 @@ def load_data():
         data_by_type_full[row[0]].append(row[1].split("|||"))
     #Only a randomly selelcted 39 users of each for the 16 personality type are used to train the models
     #That is the number of users for the rarest personality
-    #This way there is no popularity bias built into the model 
+    #This way there is no popularity bias built into the models
     data_by_type = dict()
     for key in data_by_type_full.keys():
         data_by_type[key] = random.sample(data_by_type_full[key], 39)
@@ -46,7 +46,7 @@ def load_data():
 
 
 
-#Ouputs the data to tf_matrix in a format ready for the analysis program
+#Ouputs the data to tf_matrix in a format ready for the analysis.py program
 def tf_full(pairs, data_by_type):
     #the word_bank OrderedSet is used because all the unqiue terms need to be in a consistent order
     word_bank = OrderedSet()
@@ -77,7 +77,7 @@ def tf_full(pairs, data_by_type):
             types.append(c)    
         # starts at 0 and goes to 15   
         c = c+1        
-    #this is the output of the data prep progam used for the start of the analysis program       
+    #this is the output of the data prep progam used for the start of the analysis.py program       
     to_csv("tf_matrix.csv", word_occurances, word_bank, pair_types, types)
     
 
@@ -109,7 +109,7 @@ def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key)
         i += 1 
 
 #note: pair_type is a list of 4 lists of personality bits...
-#for the users personailty selection for the given pair
+#for the users personailty selection for the corresponding pair
 def populate_pairs(pair_types, pairs, key): 
     c =0
     for item in pairs:
@@ -119,7 +119,7 @@ def populate_pairs(pair_types, pairs, key):
             pair_types[c].append(0)
         c = c+1
 
-#output to tf_matrix.csv for the analysis program
+#output to tf_matrix.csv for the analysis.py program
 def to_csv(file_name, word_occurances, word_bank, pair_types,  types):   
     df = pd.DataFrame(data=word_occurances, columns=list(word_bank))  
     #these columns are the personailty columns 

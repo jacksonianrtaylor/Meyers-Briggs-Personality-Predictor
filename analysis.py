@@ -2,7 +2,6 @@
 import pandas as pd
 import time
 
-#Seeded to constant integer for consistent results accross runtimes
 import random
 from threading import Thread
 
@@ -186,8 +185,8 @@ for item in pairs:
     gap_size = 8
     print(item, "Classification:")
     while(i<6):           
-        #optimiztion function fminbound finds the best value between the bounds of the number of features
-        #to minimize test_features
+        #optimiztion function fminbound finds the best value between the bounds of the number of features...
+        #that minimizes test features
 
         #multithreading is used for small to medium improvements in runtime  
 
@@ -247,7 +246,7 @@ for item in pairs:
     ,"Naive Bays: "+ "Features: "+str(local_optimas_bays[0][1])+" Accuracy: "+str(local_optimas_bays[0][0])]
     
 
-    #print above results directly above
+    #print results directly above
     print(item, "Classification:")
     print("Best Predictor Function Scores:")
     print("Decision Tree:","Features:",local_optimas_dec[0][1],"Accuracy:",local_optimas_dec[0][0])
