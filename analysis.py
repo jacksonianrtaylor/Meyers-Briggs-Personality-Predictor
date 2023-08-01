@@ -29,7 +29,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 #global random seed for consistent train test splits 
 #and randomstates for certain models
-rseed = 5
+rseed = 10
 
 
 
@@ -105,7 +105,10 @@ class tests():
         #note: the current configuration uses only the train data to fit the selectKbest selector
         #This is to simulate a simple case of testing the model with new data
         #the test data can use the "selector" but should not contribute to fiting it
-        X_train,X_test,y_train,y_test = train_test_split(X,  y,test_size = 50, random_state = rseed)
+        X_train,X_test,y_train,y_test = train_test_split(X,  y, test_size = 50, random_state = rseed, stratify=y)
+        #LOOK, NEW: the test and train data should be split 50/50 for equal output values (0 and 1)
+        #this could be acheived using two train test splits and combining them
+        #
 
         selector = SelectKBest(chi2, k=i)
         selector.fit(X_train, y_train)

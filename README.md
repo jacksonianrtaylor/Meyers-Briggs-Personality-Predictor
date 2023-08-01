@@ -1,20 +1,9 @@
-Goal:
+Data: 
 
 Data Source:
 https://www.kaggle.com/datasets/datasnaek/mbti-type
 
 The posts were collected from personailty cafe...
-
-The goal of the project is to predict a users personailty score based on their 50 last post on a site called personailty cafe...
-
-The text data is first conveted into a sparse matrix of 
-certain terms occuruances for the user amoung all his posts. 
-
-For each user the term frequency for chosen words is used as the inputs features to each model
-
-There are 4 kinds of models trained to predict each personailty pair: naive bays, logistic regression, decision tree, and random forest
-
-The full personality prediction is the combination of predictions for each of the 4 personality pairs
 
 
 About Meyers Briggs:
@@ -24,7 +13,24 @@ There are four personalities pairs that make up the entire personailtity profile
 Meaning that there are 2^4 = 16 possible personalities
 One can predict personality by combining all the predictions for the individual pairs
 More can be learned here:
-https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
+https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/ 
+
+
+
+Goal:
+
+The goal of the project is to predict a users personailty score based on their 50 last posts on a site called personailty cafe.
+
+The text data of the 50 posts is combined and converted into a sparse matrix of 
+certain terms occuruances. 
+
+For each user the term frequency for chosen words is used as the inputs features to each model
+
+There are 4 kinds of models trained to predict each personailty pair: naive bays, logistic regression, decision tree, and random forest
+
+The full personality prediction is the combination of predictions for each of the 4 personality pairs
+
+
 
 
 
@@ -38,13 +44,26 @@ Using this idea, all a pairwise model needs to focus on is the correct selection
 
 The point of the optimizers is to focus the model input features to a certain number of terms. Sometimes models with more terms is harder to fit.
 
-The count of each
+multithreading is implemented with model optimizers which losely gives the ability tot the cpu to schedule processes in a more efficient way.
 
 
-multithreading is implemented with model optimizers which losely gives the ability to schedule processes in a more efceient way.
+It is important to note that the same number of users of each personmality (39) for each of the 16 personalities is
+used in the test train process for each model. 
+
+This measn when any model predicts a pair their is no popularity bais buid into the model. 
+
+(LOOK) this is not exactly right...
+on average the chosen train data is split 50/50 but there is variation.
+Solution: stratify the outputs
+...
 
 
+#it is important to note that the personailty pair prediction should not have an impact on 
+#another personality pair since there is the same number of people for each of the 16 personalilties
 
+#This eliminates bais for common vs uncommon personalities
+#it means that a full prediction is not made but is theoreticaly accurate based on the predictions of each pair
+#using the law of independence and the best scored model for each personality pair...
 
 
 
