@@ -150,27 +150,5 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
-newdata/credits.csv
-newdata/keywords.csv
-newdata/links.csv
-newdata/links_small.csv
-newdata/movies_metadata.csv
-newdata/ratings.csv
-newdata/ratings_small.csv
-testing.txt
-constructedData/constructedData.csv
-constructedData/constructedData.csv
-.ipynb_checkpoints/analysis-checkpoint.py
-.ipynb_checkpoints/intj_infp-checkpoint.csv
-.ipynb_checkpoints/mbti_1-checkpoint.csv
-.ipynb_checkpoints/results-checkpoint.csv
-.ipynb_checkpoints/tf_matrix-checkpoint.csv
-.ipynb_checkpoints/transform-checkpoint.py
-.ipynb_checkpoints/word_occurances_type-checkpoint.csv
-.ipynb_checkpoints/analysis-checkpoint.py
-.ipynb_checkpoints/intj_infp-checkpoint.csv
-.ipynb_checkpoints/mbti_1-checkpoint.csv
-.ipynb_checkpoints/results-checkpoint.csv
-.ipynb_checkpoints/tf_matrix-checkpoint.csv
-.ipynb_checkpoints/transform-checkpoint.py
-.ipynb_checkpoints/word_occurances_type-checkpoint.csv
+
+#non-default omissions:

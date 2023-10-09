@@ -1,5 +1,15 @@
 FROM ubuntu:latest
 
+#https://stackoverflow.com/questions/23935141/how-to-copy-docker-images-from-one-host-to-another-without-using-a-repository
+#save docker images
+
+#why use docker: 
+#https://towardsdatascience.com/why-using-docker-for-machine-learning-74c927ceb6c4
+
+
+#this may be the best option besides steps from git to execution
+
+
 RUN apt-get update && apt-get install -y python3 \
     python3-pip
 
