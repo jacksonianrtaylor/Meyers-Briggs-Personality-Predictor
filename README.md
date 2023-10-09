@@ -68,18 +68,39 @@ Solution: stratify the outputs
 
 
 
-How to run/install:
+How to install/run:
 
-install a certin version of python with venv creation...
+Quick Way (with docker):
 
-https://stackoverflow.com/questions/1534210/use-different-python-version-with-virtualenv
-https://docs.python.org/3/library/venv.html
+requirements:
+-Git
+-Dockerdesktop
+-Sufficent memory
+
+clone the repository
+navigate to the main project directory
+build docker image using the provided Dockerfile:
+run the created docker image:
+observe outputs from the console of the running image
+computation can take some time (estimation)
 
 
 
-You may use the requirements.txt to install the require=d package versions
-But it shoud still work with the most up to date version of python and the installed packages
+Explicit Way (no docker):
 
+requirements:
+-Git
+-Sufficent memory
+-python3 and pip (working python version: 3.10.7)
+
+with python and pip
+create a python virtual env in the main project directory:
+install the following packages to the virtual env:
+scipy, scikit-learn, pandas, nltk, ordered_set
+activate the virtual environment
+use python to run the transform.py (and observe results in console)
+after completion of transform.py run analysis.py (and observe results in console)
+computation can take some time (estimation)
 
 
 
