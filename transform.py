@@ -89,6 +89,7 @@ def update_word_bank(word_bank,data_by_type,x, key):
                     and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')]  
         word_bank.update(tokens_2)
         
+        
 #return a list of word counts in the order of the word_bank       
 def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key): 
     #all the words that a user used, copies allowed
