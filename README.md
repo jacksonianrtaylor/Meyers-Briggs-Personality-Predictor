@@ -91,15 +91,18 @@ Explicit Way (no docker):
 requirements:
 -Git
 -Sufficent memory
--python3 and pip (working python version: 3.10.7)
+-python3 and pip (my working python version: 3.10.7)
 
-with python and pip
+clone the repository
+
+with python and pip:
 create a python virtual env in the main project directory:
 install the following packages to the virtual env:
 scipy, scikit-learn, pandas, nltk, ordered_set
 activate the virtual environment
-use python to run the transform.py (and observe results in console)
-after completion of transform.py run analysis.py (and observe results in console)
+use python command to run the transform.py (and observe results in console)
+after completion of transform.py, run analysis.py (and observe results in console)
+
 computation can take some time (estimation)
 
 
