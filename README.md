@@ -16,35 +16,38 @@ More can be learned here:
 https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/ 
 
 
-
 Goal:
 
-The goal of the project is to predict a users personailty score based on their last 50 posts on a site called personailty cafe.
+-The goal of the project is to predict a users personailty score based on their last 50 posts on a site called personality cafe.
 
-the input data to the model for a given user is a list of word/term counts in a consistent order that at least one user in the entire data set posted
+-The text data of the 50 posts for each user is combined and converted into a sparse matrix of term frequencies with teh entire set of terms
+found in at least one users posts
 
-The text data of the 50 posts for each user is combined and converted into a sparse matrix of term frequencies 
+- The first py file in the project (transform.py) transforms the raw data from mbti_1.csv into a tf matrix 
 
-Since the entire list of word/term frequencies is alot of features for a model the analysis.py uses an optimization technique to reduce the number of features to a optimal number
+- this matrix along with some columns that represent the users personality type is saved in tf_matrix.csv
 
-There are 4 kinds of models trained to predict each personailty pair: naive bays, logistic regression, decision tree, and random forest
+- the second py file trains a variety of models to predict and score the different personality pairs of the test data
 
-The best model for each of these classes is foudn for each personality pair (this means)
-
-since there are 4 personality pairs, this means there are 16 relevant models if there is to be a single best model with an optimal number of featurs for each pair model combination
-
+- Since the entire list of word/term frequencies for all documented terms for all users is alot of features for a model, the analysis.py uses an optimization technique to reduce the number of features to a more managable and optimal number
 
 
 
+There are 4 kinds of models trained and tested to predict each personailty pair: naive bays, logistic regression, decision tree, and random forest
+
+The best model for each of these classes is found for each personality pair using optimization, meaning the correct number of the best features
+or words/terms is used
+
+since there are 4 personality pairs and 4 model categories, this means there are 16 unqiue models if there is to be a single best model with an optimal number of features for each pair-model combination
 
 The full personality prediction is the combination of predictions for each of the 4 personality pairs 
 
 
+the analysis applies and ouputs results of a single model type trained and tested for each personality type 
+
+as well as the outcome of the absolute best model for each personality type (this could be any combination of the model categories like)
 
 
-This is done with individual models to predict every pair as well as the combination of the best performing models for each pair
-
-when indiviudal models are used 
 
 
 
