@@ -19,17 +19,32 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 Goal:
 
-The goal of the project is to predict a users personailty score based on their 50 last posts on a site called personailty cafe.
+The goal of the project is to predict a users personailty score based on their last 50 posts on a site called personailty cafe.
 
-The text data of the 50 posts is combined and converted into a sparse matrix of 
-certain terms occuruances. 
+the input data to the model for a given user is a list of word/term counts in a consistent order that at least one user in the entire data set posted
 
-For each user the term frequency for chosen words is used as the inputs features to each model
+The text data of the 50 posts for each user is combined and converted into a sparse matrix of term frequencies 
+
+Since the entire list of word/term frequencies is alot of features for a model the analysis.py uses an optimization technique to reduce the number of features to a optimal number
 
 There are 4 kinds of models trained to predict each personailty pair: naive bays, logistic regression, decision tree, and random forest
 
-The full personality prediction is the combination of predictions for each of the 4 personality pairs
+The best model for each of these classes is foudn for each personality pair (this means)
 
+since there are 4 personality pairs, this means there are 16 relevant models if there is to be a single best model with an optimal number of featurs for each pair model combination
+
+
+
+
+
+The full personality prediction is the combination of predictions for each of the 4 personality pairs 
+
+
+
+
+This is done with individual models to predict every pair as well as the combination of the best performing models for each pair
+
+when indiviudal models are used 
 
 
 
