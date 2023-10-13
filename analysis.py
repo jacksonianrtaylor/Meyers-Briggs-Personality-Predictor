@@ -107,8 +107,9 @@ class tests():
         #the test data can use the "selector" but should not contribute to fiting it
         X_train,X_test,y_train,y_test = train_test_split(X,  y, test_size = 50, random_state = rseed, stratify=y)
         #LOOK, NEW: the test and train data should be split 50/50 for equal output values (0 and 1)
-        #this could be acheived using two train test splits and combining them
-        #
+        #what stratify does it is makes sure the same proportions of target values in the data is preseved in the
+        #train and test data both the X_test and y_test are split 50/50
+
 
         selector = SelectKBest(chi2, k=i)
         selector.fit(X_train, y_train)
