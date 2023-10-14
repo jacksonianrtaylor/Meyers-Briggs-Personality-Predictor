@@ -91,14 +91,16 @@ def update_word_bank(word_bank,data_by_type,x, key):
                     and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')]  
         word_bank.update(tokens_2)
 
-        
-#idea: 
-#note: this seems to lead to unecessary processing!!!
+
 #why is a variables like bag of words not updated in the above function to save processing??? 
+
 
 
 #the bag of words and the word_bank could be sorted
 #the wordbank only needs to be sorted once but the bag of words is per user 
+
+#why is the conditon in the following function search the word bank???
+#Is it faster than confirming if its not in stopwords and is a alpha numerical???
 
 
 def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key):
@@ -110,8 +112,10 @@ def update_word_occurances(word_bank, group_word_occurances,x, data_by_type,key)
     bag_of_words = [] 
     for post in data_by_type[key][x]:
         tokens_1 = word_tokenize(post)
+        # tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
+        #             if WordNetLemmatizer().lemmatize(token.lower()) in word_bank]
         tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
-                    if WordNetLemmatizer().lemmatize(token.lower()) in word_bank]
+                    if token.isalpha() and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')]       
         bag_of_words.extend(tokens_2)
 
 
@@ -168,3 +172,18 @@ for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):
 tf_full(pairs, data_by_type)
 print("Done")
 print("Full compute time:",float((time.time() - time_t)/60), "Minutes")
+
+
+
+#both: bag of words split...
+
+#version with:
+# tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
+#             if WordNetLemmatizer().lemmatize(token.lower()) in word_bank]
+
+#Full compute time: 6.870408161481222 Minutes
+
+
+#version with:
+# tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
+#             if token.isalpha() and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')] 
