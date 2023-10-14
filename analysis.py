@@ -7,18 +7,15 @@ from threading import Thread
 
 from scipy.sparse import csr_matrix
 from scipy.optimize import fminbound
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-
-
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import SelectKBest
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-
 
 
 #some normalization techniques were tested that decreased the time for model convergence but produced worse results for accurcay scores
@@ -32,10 +29,8 @@ from sklearn.preprocessing import MinMaxScaler
 rseed = 10
 
 
-
-#Inherits from the Thread class so that a version can be created that...
-#returns function parameters return value in the join method
 class return_thread(Thread):
+    """Thread class that returns a value in the join method"""
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs={}, Verbose=None):
         Thread.__init__(self, group, target, name, args, kwargs)
@@ -48,9 +43,9 @@ class return_thread(Thread):
         Thread.join(self, *args)
         return self._return
 
-#classification models
-#they all return accuracy scores
-#which is simply the number of correct predictions divided by the number of predictions
+#classification models:
+#they all return accuracy scores (the number of correct predictions divided by the number of predictions)
+
 def naive_bays_model(X_train,X_test,y_train,y_test):
     naive_bays = MultinomialNB()
     naive_bays.fit(X_train,y_train)
@@ -63,22 +58,14 @@ def log_reg_model(X_train,X_test,y_train,y_test):
     y_pred=log_reg.predict(X_test)   
     return accuracy_score(y_test, y_pred)
 
-
 def rand_forest_model(X_train,X_test,y_train,y_test):
     rand_for = RandomForestClassifier(random_state = rseed)
     rand_for.fit(X_train,y_train)
     y_pred=rand_for.predict(X_test)   
     return accuracy_score(y_test, y_pred)
 
-def fit_tree(X_train,X_test,y_train,y_test, alpha):
-    if(alpha < 0):
-        alpha = 0
-    dec_tree_a = DecisionTreeClassifier(random_state = rseed, ccp_alpha = alpha)
-    dec_tree_a.fit(X_train,y_train)
-    y_pred = dec_tree_a.predict(X_test)   
-    return accuracy_score(y_test, y_pred)
-    
 def dec_tree_model(X_train,X_test,y_train,y_test):
+    """The decision tree model implements cost complexity pruning"""
     dec_tree = DecisionTreeClassifier(random_state = rseed)
     path = dec_tree.cost_complexity_pruning_path(X_train, y_train)
     alphas = path['ccp_alphas']   
@@ -86,39 +73,50 @@ def dec_tree_model(X_train,X_test,y_train,y_test):
     for alpha in alphas:
         scores.append(fit_tree(X_train,X_test,y_train,y_test, alpha))             
     scores.sort(reverse  = True)   
-    return scores[0]    
-    
+    return scores[0]   
 
-#tests class
-#this is what is used to test the accuracy of models for varied number of feature inputs...
-#that are selected with chi-squared feature selection
-#the input features are simply word counts
+def fit_tree(X_train,X_test,y_train,y_test, alpha):
+    "get the accuracy score of a specific tree with given ccp_alpha"
+    if(alpha < 0):
+        alpha = 0
+    dec_tree_a = DecisionTreeClassifier(random_state = rseed, ccp_alpha = alpha)
+    dec_tree_a.fit(X_train,y_train)
+    y_pred = dec_tree_a.predict(X_test)   
+    return accuracy_score(y_test, y_pred)
+    
+   
+
+
 class tests():   
+    """
+    This is what is used to test the accuracy of models for varied number of feature inputs
+    that are selected with chi-squared feature selection
+    The input features are simply word counts.
+    """
     def __init__(self):
         #This is used for consistent train test splits for a given runtime for all models
-        #however, it has been replaced with a constant seed...
-        #to produce simlair consistencey over runtimes
-        #see rseed variable above
+        #however, it has been replaced with a constant seed to produce simlair consistencey over runtimes
+        #rseed is used instead
         self.seed = random.randint(0, 42) 
 
     def preprocess(self, i,X, y):
-        #note: the current configuration uses only the train data to fit the selectKbest selector
-        #This is to simulate a simple case of testing the model with new data
-        #the test data can use the "selector" but should not contribute to fiting it
-        X_train,X_test,y_train,y_test = train_test_split(X,  y, test_size = 50, random_state = rseed, stratify=y)
-        #LOOK, NEW: the test and train data should be split 50/50 for equal output values (0 and 1)
-        #what stratify does it is makes sure the same proportions of target values in the data is preseved in the
+        """Make the data ready for the model"""
+        #stratefy makes sure the same proportions of target values in the full dataset is preseved in the
         #train and test data both the X_test and y_test are split 50/50
-
+        X_train,X_test,y_train,y_test = train_test_split(X,  y, test_size = 50, random_state = rseed, stratify=y)
 
         selector = SelectKBest(chi2, k=i)
+        #only train data is used to fit the selectKbest selector...
         selector.fit(X_train, y_train)
+        #but the X_test data still makes use of it
+        #This is to simulate a simple case of testing the model with new data that can not influence the selector
         X_train = selector.transform(X_train)
         X_test = selector.transform(X_test)
 
         return X_train,X_test,y_train,y_test
 
     def test_features(self,i, model_id, X, y ):
+        """Train and test a model after preprocessing"""
         #https://blog.finxter.com/python-list-copy/
         #copy is atomic and rest of the variables are thread safe in the current namespace
         #this also re-intitializes the data in the local scope
@@ -144,15 +142,14 @@ class tests():
 
 #main
 
-#load data from tf_matrix.csv that was populated by the transform.py program
 time_t = time.time()
 f = open('tf_matrix.csv', 'r', encoding="utf-8")
 data = pd.read_csv(f, header=0) 
 
-#used for outputs
+#pairs used for outputs
 pairs  =  ["_I_E_","_N_S_", "_T_F_", "_J_P_"] 
 
-#features are all word/tokens that occur in at least one text
+#features are all word/tokens that occur in at least one (from word bank in the transfrom.py programm)
 features = list(data.keys())
 features = features[:-5]
 
@@ -311,19 +308,21 @@ out_df.to_csv(out_file,index  = False)
 out_file.close()   
 
 #time to compute
-print("Full compute time:",time.time()-time_t,"Seconds")
+print("Done")
+print("Full compute time:",float((time.time() - time_t)/60), "Minutes")
 
 
-#Note: it is important to state in the readme that one personailty pair prediction should not have an impact on 
-#another personality pair since there is the same number of people for each of the 16 personalilties
-#This eliminates bais for common vs uncommon personalities
-#it means that a full prediction is not made but is theoreticaly accurate based on the predictions of each pair
-#using the law of independence and the best scored model for each personality pair...
+#note: need to implement main!!!
 
 
+#last output
 
+# Complete Myers Briggs Prediction for individual Classifiers:
+# Decision Tree:  0.41827968
+# Logistic Regression:  0.4061952
+# Random Forest:  0.440832
+# Naive Bays:  0.3005184
 
-
-
-
-
+# Myers Briggs Prediction from the best of each Classifier:
+# 0.4738944
+# Full compute time: 414.5868921279907 Seconds
