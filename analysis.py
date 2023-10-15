@@ -153,7 +153,7 @@ pairs  =  ["_I_E_","_N_S_", "_T_F_", "_J_P_"]
 features = list(data.keys())
 features = features[:-5]
 
-#X is all the occurances of the words for each user
+#X is all the occurances of the words for each user the tf mtrix from tf_mtrix.csv (not the personality data)
 X = data[features]
 X = X.values
 
@@ -162,35 +162,43 @@ X = csr_matrix(X)
 
 classification_tests = tests()
 
-#list of the accuracies of the best models of each type (Decision Tree, Logistic Regession, Random Forest, Naive Bays)....
-#for predicting each personality pair
+
+#this is waht it is:
+#a list of the accuracy scores for the best model of each model type (Decision Tree, Logistic Regession, Random Forest, Naive Bays) for every personalitiy pair
+#this list becomes a (4 personality pairs X 4 model types) = 16 model accuracies
+
+
+#this is how it used:
+#this is used to multiply the accuracy scores of the same model type for each personailty pair to aproximate the comeplete personailty accuracy score
+#for a given model. This means there will be 4 accuracy scores (one for eahc model)
+#this is also used to find the absolute best model (take the best models from the Best in class for each personality pair)
 Best_in_class = []
 
-#used to output to the results.csv file
+#used to output to the results.csv file to observe outpus in a different way
+#note: may need to change later
 out_df = pd.DataFrame()
 
-#analysis
-print("Testing 39 users for each of the 16 meyers briggs personalities...\n")
+print("Training and testing with (39 X 16) = 624 users for each personality pair\n")
+
+#note sure what c is used for???
 c = 0
 for item in pairs:  
     c = c+1
-    #not necessary to use list(data[item]) here...
-    y = data[item]
+    #target values of the current personality pair
+    y = list(data[item])
     #each model is tested for each pair prediction
     local_optimas_dec  = []
     local_optimas_reg  = []
     local_optimas_for  = []
     local_optimas_bays = []   
-    #i and gap_size determine the bounds of the fminbound opimization on the test_features function
+    #i and gap_size determine the bounds of the fminbound opimization on the test_features function used below
     i = 0
     gap_size = 8
     print(item, "Classification:")
     while(i<6):           
-        #optimiztion function fminbound finds the best value between the bounds of the number of features...
-        #that minimizes test features
-
-        #multithreading is used for small to medium improvements in runtime  
-
+        #optimiztion function fminbound finds the best value between the bounds of the number of features ((i)*gap_size+1 to (i+1)*gap_size+1)...
+        #that maximizes model perfromance
+        #multithreading is used here for small to medium improvements in runtime  
         t1 = return_thread(group=None,target=fminbound,
                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("dec_tree_model",X, y), "full_output" : True, "disp" :0})
         t2 = return_thread(group=None,target=fminbound,
@@ -209,7 +217,7 @@ for item in pairs:
         local_optima_3 = t3.join()
         local_optima_4 = t4.join()   
         
-        # slower and without the use of multithreading
+        # slower version of the above without the use of multithreading
         # local_optima_1 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("dec_tree_model",X, y), full_output  = True, disp   =0)
         # local_optima_2 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("log_reg_model",X, y), full_output  = True, disp   =0)
         # local_optima_3 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("rand_forest_model",X, y), full_output  = True, disp   =0)
@@ -222,10 +230,10 @@ for item in pairs:
         local_optimas_bays.append((-local_optima_4[1], int(local_optima_4[0])))  
 
 
-        #local_optima_1[1] is a score
+        #local_optima_1[1] is an accuracy score
         #and local_optima_1[0] is number of features used that gave the accuracy score 
-        #this is to show progress but may be out of order with use of multithreading
-
+        #this is used show progress 
+        #LOOK: can this be processed out of order???
         print("Iteration:", i+1)
         print("Decision Tree Test:",  "Score:",-local_optima_1[1], "Features:", int(local_optima_1[0]))                       
         print("Logistic Regression Test:",  "Score:",-local_optima_2[1], "Features:", int(local_optima_2[0]))        
@@ -234,20 +242,21 @@ for item in pairs:
         
         i += 1
 
-    #find the best accuracy for the best number of features for each model for a certain personality pair
+    #find the best accuracy for utlizing the best number of features for each model type for current personality pair
     local_optimas_dec.sort(reverse  = True) 
     local_optimas_reg.sort(reverse  = True)
     local_optimas_for.sort(reverse  = True)
     local_optimas_bays.sort(reverse  = True)
     
     #outputs to be used later in results.csv
-    out_df[item] = ["Decision Tree: "+"Features: "+str(local_optimas_dec[0][1])+" Accuracy: "+str(local_optimas_dec[0][0])
-    ,"Logistic Regession: "+"Features: "+str(local_optimas_reg[0][1])+" Accuracy: "+str(local_optimas_reg[0][0])
-    ,"Random Forest: "+ "Features: "+str(local_optimas_for[0][1])+" Accuracy: "+str(local_optimas_for[0][0])
-    ,"Naive Bays: "+ "Features: "+str(local_optimas_bays[0][1])+" Accuracy: "+str(local_optimas_bays[0][0])]
+    #LOOK: currently omitted for presentation 
+    # out_df[item] = ["Decision Tree: "+"Features: "+str(local_optimas_dec[0][1])+" Accuracy: "+str(local_optimas_dec[0][0])
+    # ,"Logistic Regession: "+"Features: "+str(local_optimas_reg[0][1])+" Accuracy: "+str(local_optimas_reg[0][0])
+    # ,"Random Forest: "+ "Features: "+str(local_optimas_for[0][1])+" Accuracy: "+str(local_optimas_for[0][0])
+    # ,"Naive Bays: "+ "Features: "+str(local_optimas_bays[0][1])+" Accuracy: "+str(local_optimas_bays[0][0])]
     
 
-    #print results directly above
+    #print results from directly above
     print(item, "Classification:")
     print("Best Predictor Function Scores:")
     print("Decision Tree:","Features:",local_optimas_dec[0][1],"Accuracy:",local_optimas_dec[0][0])
@@ -257,11 +266,12 @@ for item in pairs:
     
     #Best of class is a list of optimal scores for each model for each personality pair
     #note: This append is just for a single personality pair
-    #note: local_optimas_dec[0][0] gives the best decision tree score since local_optimas_dec is sorted backwards
     Best_in_class.append([local_optimas_dec[0][0], 
                           local_optimas_reg[0][0], 
                           local_optimas_for[0][0], 
                           local_optimas_bays[0][0]])
+
+
 
 
 
@@ -284,6 +294,8 @@ for x in range (0,4):
     print(classifiers[x], product)
     results.append(str(classifiers[x])+ str(product))
 
+
+
 #header 2
 print("\nMyers Briggs Prediction from the best of each Classifier:")
 
@@ -295,19 +307,30 @@ for item in Best_in_class:
     product*= item[0]
 
 
-#this shows the score by using a model consistently for all the pair predictions
+#for each model type, the overall score for predicting each personality pair
 out_df["Best in Class:"] = results
 
-#this ouputs the theoretical score using the best model for each pair prediction
+#LOOK: how does this work???
+#best of class is a 4X4 list 
+#the best accuracy for a given model type is found for each personailty pair
+
+#LOOK: there needs to be a cleaner kind of output besides a csv
+#the overall score needs to share the models used and the number of features used for each model
+#the model type score needs to show the number of featurs
+
+#LOOK:
+#how should the df be ordered???
+
+#this outputs the theoretical score using the overall best model for each pair prediction
 print(product)
 out_df["Overall Best"] = [str(product), "", "","" ]
 
-#outputs
+#output to results.csv
 out_file = open('results.csv', 'w', encoding="utf-8")
 out_df.to_csv(out_file,index  = False)
 out_file.close()   
 
-#time to compute
+#computation time
 print("Done")
 print("Full compute time:",float((time.time() - time_t)/60), "Minutes")
 
