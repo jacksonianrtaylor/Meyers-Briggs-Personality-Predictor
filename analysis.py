@@ -176,7 +176,9 @@ Best_in_class = []
 
 #used to output to the results.csv file to observe outpus in a different way
 #note: may need to change later
-out_df = pd.DataFrame()
+#LOOK
+#this is being replaced
+# out_df = pd.DataFrame()
 
 print("Training and testing with (39 X 16) = 624 users for each personality pair\n")
 
@@ -249,7 +251,7 @@ for item in pairs:
     local_optimas_bays.sort(reverse  = True)
     
     #outputs to be used later in results.csv
-    #LOOK: currently omitted for presentation 
+    #LOOK: currently omitted for simpler presentation 
     # out_df[item] = ["Decision Tree: "+"Features: "+str(local_optimas_dec[0][1])+" Accuracy: "+str(local_optimas_dec[0][0])
     # ,"Logistic Regession: "+"Features: "+str(local_optimas_reg[0][1])+" Accuracy: "+str(local_optimas_reg[0][0])
     # ,"Random Forest: "+ "Features: "+str(local_optimas_for[0][1])+" Accuracy: "+str(local_optimas_for[0][0])
@@ -296,19 +298,44 @@ for x in range (0,4):
 
 
 
-#header 2
-print("\nMyers Briggs Prediction from the best of each Classifier:")
 
 #find the absolute best model
 #product is used in the same way as above
-product  = 1
+
+#the best model types should also be listed...
+#simply zip the item and classifiers together
+
+best_model_types = []
+best_model_accuracy  = 1
+
 for item in Best_in_class:
-    item.sort(reverse  = True)
-    product*= item[0]
+    acc_model_type = list(zip(item, classifiers))
+    #use sorted...
+    acc_model_type = sorted(iterable = acc_model_type, key = (lambda x: x[0]) ,reverse = True)
+    best_model_accuracy*= acc_model_type[0][0]
+    best_model_types.append(acc_model_type[0][1])
 
 
 #for each model type, the overall score for predicting each personality pair
-out_df["Best in Class:"] = results
+
+#LOOK
+#this is being removed with the logic of the new txt output replacing the csv file
+# out_df["Best in Class:"] = results
+
+
+#NEW
+f = open("results.txt","w")
+for item in results:
+    f.write(item)
+
+f.write(best_model_accuracy)
+f.write(best_model_types)
+f.close()
+
+
+print("\nMyers Briggs Prediction from the best of each Classifier:")
+print(best_model_accuracy)
+print(best_model_types)
 
 #LOOK: how does this work???
 #best of class is a 4X4 list 
@@ -322,13 +349,13 @@ out_df["Best in Class:"] = results
 #how should the df be ordered???
 
 #this outputs the theoretical score using the overall best model for each pair prediction
-print(product)
-out_df["Overall Best"] = [str(product), "", "","" ]
+
+# out_df["Overall Best"] = [str(product), "", "","" ]
 
 #output to results.csv
-out_file = open('results.csv', 'w', encoding="utf-8")
-out_df.to_csv(out_file,index  = False)
-out_file.close()   
+# out_file = open('results.csv', 'w', encoding="utf-8")
+# out_df.to_csv(out_file,index  = False)
+# out_file.close()   
 
 #computation time
 print("Done")
