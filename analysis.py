@@ -311,7 +311,7 @@ best_model_accuracy  = 1
 for item in Best_in_class:
     acc_model_type = list(zip(item, classifiers))
     #use sorted...
-    acc_model_type = sorted(iterable = acc_model_type, key = (lambda x: x[0]) ,reverse = True)
+    acc_model_type = sorted(acc_model_type, key = (lambda x: x[0]) ,reverse = True)
     best_model_accuracy*= acc_model_type[0][0]
     best_model_types.append(acc_model_type[0][1])
 
@@ -328,8 +328,8 @@ f = open("results.txt","w")
 for item in results:
     f.write(item)
 
-f.write(best_model_accuracy)
-f.write(best_model_types)
+f.write(str(best_model_accuracy))
+f.write(" ".join(best_model_types))
 f.close()
 
 

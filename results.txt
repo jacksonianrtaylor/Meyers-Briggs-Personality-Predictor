@@ -1,0 +1,1 @@
+Decision Tree: 0.41827968Logistic Regression: 0.4061952Random Forest: 0.440832Naive Bays: 0.30051840.4738944Logistic Regression:  Logistic Regression:  Logistic Regression:  Decision Tree: 
