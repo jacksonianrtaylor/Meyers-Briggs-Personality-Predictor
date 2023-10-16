@@ -163,12 +163,12 @@ X = csr_matrix(X)
 classification_tests = tests()
 
 
-#this is waht it is:
+#this is what it is:
 #a list of the accuracy scores for the best model of each model type (Decision Tree, Logistic Regession, Random Forest, Naive Bays) for every personalitiy pair
 #this list becomes a (4 personality pairs X 4 model types) = 16 model accuracies
 
 
-#this is how it used:
+#this is how it is used:
 #this is used to multiply the accuracy scores of the same model type for each personailty pair to aproximate the comeplete personailty accuracy score
 #for a given model. This means there will be 4 accuracy scores (one for eahc model)
 #this is also used to find the absolute best model (take the best models from the Best in class for each personality pair)
@@ -268,102 +268,80 @@ for item in pairs:
     
     #Best of class is a list of optimal scores for each model for each personality pair
     #note: This append is just for a single personality pair
-    Best_in_class.append([local_optimas_dec[0][0], 
-                          local_optimas_reg[0][0], 
+    Best_in_class.append([[local_optimas_dec[0][0],
+                          local_optimas_reg[0][0],
                           local_optimas_for[0][0], 
-                          local_optimas_bays[0][0]])
-
-
+                          local_optimas_bays[0][0]],
+                          [local_optimas_dec[0][1],
+                          local_optimas_reg[0][1],
+                          local_optimas_for[0][1], 
+                          local_optimas_bays[0][1]]])
 
 
 
 #used for outputs
-results = []
-classifiers = ["Decision Tree: ", "Logistic Regression: ", "Random Forest: ", "Naive Bays: "]
+classifiers = ["Decision Tree", "Logistic Regression", "Random Forest", "Naive Bays"]
 
-#header 1
 print("Complete Myers Briggs Prediction for individual Classifiers:")
 
-#find the accuracy score for each pair for each model
+f = open("results.txt","w")
+
+#find the theoretical accuracy score for the best prediction for all a users personality pairs using the same classifer
 for x in range (0,4):
-    #product is the score for a models performance in prediting all personality pairs correctly
-    #it is a theoretical score using law of independence
-    product =1
-    for item in Best_in_class:
-        # item controls the personailty pair in question
-        # x controls the model
-        product*= item[x]
-    print(classifiers[x], product)
-    results.append(str(classifiers[x])+ str(product))
+    pair_wise_features = ""
+    model_accuracy =1
+    c = 0
+    for pair in Best_in_class:
+        model_accuracy*= pair[0][x]
+        pair_wise_features+= pairs[c]+" pair: "+str(pair[1][x])+" features"
+        c+=1
+        
+    print("Classifier: "+classifiers[x], "Accuracy: "+str(model_accuracy))
+    print(pair_wise_features)
+    f.write("Classifier: "+classifiers[x]+" Accuracy: "+str(model_accuracy))
+    f.write("\n")
+    f.write(pair_wise_features)
+    f.write("\n")
 
 
 
 
-#find the absolute best model
-#product is used in the same way as above
-
-#the best model types should also be listed...
-#simply zip the item and classifiers together
-
-best_model_types = []
+#find the abosulte best model...
+best_model_types_and_num_features = []
 best_model_accuracy  = 1
 
-for item in Best_in_class:
-    acc_model_type = list(zip(item, classifiers))
-    #use sorted...
-    acc_model_type = sorted(acc_model_type, key = (lambda x: x[0]) ,reverse = True)
-    best_model_accuracy*= acc_model_type[0][0]
-    best_model_types.append(acc_model_type[0][1])
 
 
-#for each model type, the overall score for predicting each personality pair
+#there is number of features included and classifiers...
+for pair in Best_in_class:
+    acc_with_model_type = list(zip(pair[0], pair[1], classifiers))
+    acc_with_model_type = sorted(acc_with_model_type, key = (lambda x: x[0]) ,reverse = True)
+    best_model_accuracy*= acc_with_model_type[0][0]
+    best_model_types_and_num_features.append("classifier: "+str(acc_with_model_type[0][2])+" nof features: "+str(acc_with_model_type[0][1]))
 
-#LOOK
-#this is being removed with the logic of the new txt output replacing the csv file
-# out_df["Best in Class:"] = results
 
 
-#NEW
-f = open("results.txt","w")
-for item in results:
-    f.write(item)
-
-f.write(str(best_model_accuracy))
-f.write(" ".join(best_model_types))
+#Print and output the best model accuracy and the top models for each personality pair
+f.write("Best model accuracy" + str(best_model_accuracy))
+f.write("\n")
+f.write(" ".join(best_model_types_and_num_features))
 f.close()
+print("Myers Briggs Prediction from the best of each Classifier:")
+print("Best model accuracy", best_model_accuracy)
+print(best_model_types_and_num_features)
+  
 
-
-print("\nMyers Briggs Prediction from the best of each Classifier:")
-print(best_model_accuracy)
-print(best_model_types)
-
-#LOOK: how does this work???
-#best of class is a 4X4 list 
-#the best accuracy for a given model type is found for each personailty pair
-
-#LOOK: there needs to be a cleaner kind of output besides a csv
-#the overall score needs to share the models used and the number of features used for each model
-#the model type score needs to show the number of featurs
-
-#LOOK:
-#how should the df be ordered???
-
-#this outputs the theoretical score using the overall best model for each pair prediction
-
-# out_df["Overall Best"] = [str(product), "", "","" ]
-
-#output to results.csv
-# out_file = open('results.csv', 'w', encoding="utf-8")
-# out_df.to_csv(out_file,index  = False)
-# out_file.close()   
 
 #computation time
 print("Done")
 print("Full compute time:",float((time.time() - time_t)/60), "Minutes")
 
 
-#note: need to implement main!!!
 
+
+
+
+#note: need to implement main!!!
 
 #last output
 

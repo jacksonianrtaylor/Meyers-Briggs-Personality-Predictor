@@ -1,1 +1,10 @@
-Decision Tree: 0.41827968Logistic Regression: 0.4061952Random Forest: 0.440832Naive Bays: 0.30051840.4738944Logistic Regression:  Logistic Regression:  Logistic Regression:  Decision Tree: 
+Classifier: Decision Tree Accuracy: 0.41827968
+_I_E_ pair: 34 features_N_S_ pair: 32 features_T_F_ pair: 13 features_J_P_ pair: 31 features
+Classifier: Logistic Regression Accuracy: 0.4061952
+_I_E_ pair: 48 features_N_S_ pair: 28 features_T_F_ pair: 47 features_J_P_ pair: 12 features
+Classifier: Random Forest Accuracy: 0.440832
+_I_E_ pair: 39 features_N_S_ pair: 28 features_T_F_ pair: 42 features_J_P_ pair: 34 features
+Classifier: Naive Bays Accuracy: 0.3005184
+_I_E_ pair: 31 features_N_S_ pair: 12 features_T_F_ pair: 36 features_J_P_ pair: 47 features
+0.4738944
+classifier: Logistic Regression nof features: 48 classifier: Logistic Regression nof features: 28 classifier: Logistic Regression nof features: 47 classifier: Decision Tree nof features: 31
