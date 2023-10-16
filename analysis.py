@@ -182,10 +182,8 @@ Best_in_class = []
 
 print("Training and testing with (39 X 16) = 624 users for each personality pair\n")
 
-#note sure what c is used for???
-c = 0
+
 for item in pairs:  
-    c = c+1
     #target values of the current personality pair
     y = list(data[item])
     #each model is tested for each pair prediction
@@ -214,10 +212,10 @@ for item in pairs:
         t3.start()
         t4.start()  
 
-        local_optima_1 = t1.join()
-        local_optima_2 = t2.join()
-        local_optima_3 = t3.join()
-        local_optima_4 = t4.join()   
+        local_optima_dec = t1.join()
+        local_optima_reg = t2.join()
+        local_optima_for = t3.join()
+        local_optima_bays = t4.join()   
         
         # slower version of the above without the use of multithreading
         # local_optima_1 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("dec_tree_model",X, y), full_output  = True, disp   =0)
@@ -226,57 +224,53 @@ for item in pairs:
         # local_optima_4 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("naive_bays_model",X, y), full_output  = True, disp   =0)
         
         #the negation is returned (see test_features function)
-        local_optimas_dec.append((-local_optima_1[1], int(local_optima_1[0])))
-        local_optimas_reg.append((-local_optima_2[1], int(local_optima_2[0])))
-        local_optimas_for.append((-local_optima_3[1], int(local_optima_3[0])))
-        local_optimas_bays.append((-local_optima_4[1], int(local_optima_4[0])))  
+        local_optimas_dec.append((-local_optima_dec[1], int(local_optima_dec[0])))
+        local_optimas_reg.append((-local_optima_reg[1], int(local_optima_reg[0])))
+        local_optimas_for.append((-local_optima_for[1], int(local_optima_for[0])))
+        local_optimas_bays.append((-local_optima_bays[1], int(local_optima_bays[0])))  
 
 
-        #local_optima_1[1] is an accuracy score
-        #and local_optima_1[0] is number of features used that gave the accuracy score 
-        #this is used show progress 
-        #LOOK: can this be processed out of order???
+        #-local_optima_dec[1] is an accuracy score for the best local(within a range of number of features) model for decision tree
+        #int(local_optima_dec[0]) is number of features for the best local(within a range of number of features) model for decision tree
+        #similair is true for the other classfiers
+        #this is used to show progress 
         print("Iteration:", i+1)
-        print("Decision Tree Test:",  "Score:",-local_optima_1[1], "Features:", int(local_optima_1[0]))                       
-        print("Logistic Regression Test:",  "Score:",-local_optima_2[1], "Features:", int(local_optima_2[0]))        
-        print("Random Forest Test:", "Score:",-local_optima_3[1], "Features:", int(local_optima_3[0]))       
-        print("Naive Bays Test:",  "Score:",-local_optima_4[1], "Features:", int(local_optima_4[0]),"\n")   
+        print("Decision Tree Test:",  "Accuracy:",-local_optima_dec[1], "Features:", int(local_optima_dec[0]))                       
+        print("Logistic Regression Test:",  "Accuracy:",-local_optima_reg[1], "Features:", int(local_optima_reg[0]))       
+        print("Random Forest Test:", "Accuracy:",-local_optima_for[1], "Features:", int(local_optima_for[0]))  
+        print("Naive Bays Test:",  "Accuracy:",-local_optima_bays[1], "Features:", int(local_optima_bays[0]),"\n")  
         
         i += 1
 
-    #find the best accuracy for utlizing the best number of features for each model type for current personality pair
-    local_optimas_dec.sort(reverse  = True) 
-    local_optimas_reg.sort(reverse  = True)
-    local_optimas_for.sort(reverse  = True)
-    local_optimas_bays.sort(reverse  = True)
-    
-    #outputs to be used later in results.csv
-    #LOOK: currently omitted for simpler presentation 
-    # out_df[item] = ["Decision Tree: "+"Features: "+str(local_optimas_dec[0][1])+" Accuracy: "+str(local_optimas_dec[0][0])
-    # ,"Logistic Regession: "+"Features: "+str(local_optimas_reg[0][1])+" Accuracy: "+str(local_optimas_reg[0][0])
-    # ,"Random Forest: "+ "Features: "+str(local_optimas_for[0][1])+" Accuracy: "+str(local_optimas_for[0][0])
-    # ,"Naive Bays: "+ "Features: "+str(local_optimas_bays[0][1])+" Accuracy: "+str(local_optimas_bays[0][0])]
+    #find the model with the most optimal number of features for each classfier for the the given pair
+    #the optimal model has the highest accuracy for the classfier in question
+    optimal_dec = max(local_optimas_dec, key = lambda x: x[0])
+    optimal_reg = max(local_optimas_reg, key = lambda x: x[0])
+    optimal_for = max(local_optimas_for, key = lambda x: x[0])
+    optimal_bays = max(local_optimas_bays, key = lambda x: x[0])
     
 
-    #print results from directly above
+    #print the accuracy and the number of features for the best of each classifier for the given pair
     print(item, "Classification:")
     print("Best Predictor Function Scores:")
-    print("Decision Tree:","Features:",local_optimas_dec[0][1],"Accuracy:",local_optimas_dec[0][0])
-    print("Logistic Regession:","Features:",local_optimas_reg[0][1],"Accuracy:",local_optimas_reg[0][0])
-    print("Random Forest:", "Features:",local_optimas_for[0][1],"Accuracy:",local_optimas_for[0][0])
-    print("Naive Bays:", "Features:",local_optimas_bays[0][1],"Accuracy:",local_optimas_bays[0][0],"\n")
+    print("Decision Tree:","Features:",optimal_dec[1],"Accuracy:",optimal_dec[0])
+    print("Logistic Regession:","Features:",optimal_reg[1],"Accuracy:",optimal_reg[0])
+    print("Random Forest:", "Features:",optimal_for[1],"Accuracy:",optimal_for[0])
+    print("Naive Bays:", "Features:",optimal_bays[1],"Accuracy:",optimal_bays[0],"\n")
     
-    #Best of class is a list of optimal scores for each model for each personality pair
-    #note: This append is just for a single personality pair
-    Best_in_class.append([[local_optimas_dec[0][0],
-                          local_optimas_reg[0][0],
-                          local_optimas_for[0][0], 
-                          local_optimas_bays[0][0]],
-                          [local_optimas_dec[0][1],
-                          local_optimas_reg[0][1],
-                          local_optimas_for[0][1], 
-                          local_optimas_bays[0][1]]])
 
+    #Best_in_class is a list of pairs that include four accuracy scores for each of the four classifers on the personailty type...
+    #and four number of optimal features corresponding to these accuracy scores
+    #each accuracy score is the best accuracy score for the coresponding classifer for the given pair
+    #each of the optimal number of features is the inputs to the model that produces this accuracy score
+    Best_in_class.append([[optimal_dec[0],
+                          optimal_reg[0],
+                          optimal_for[0], 
+                          optimal_bays[0]],
+                          [optimal_dec[1],
+                          optimal_reg[1],
+                          optimal_for[1], 
+                          optimal_bays[1]]])
 
 
 #used for outputs
@@ -286,49 +280,51 @@ print("Complete Myers Briggs Prediction for individual Classifiers:")
 
 f = open("results.txt","w")
 
-#find the theoretical accuracy score for the best prediction for all a users personality pairs using the same classifer
-for x in range (0,4):
+#find the best models that uses the same classifer type for each personality pair and out put them
+for i in range (0,4):
     pair_wise_features = ""
     model_accuracy =1
-    c = 0
+    j = 0
     for pair in Best_in_class:
-        model_accuracy*= pair[0][x]
-        pair_wise_features+= pairs[c]+" pair: "+str(pair[1][x])+" features"
-        c+=1
+        model_accuracy*= pair[0][i]
+        pair_wise_features+= "Pair: "+pairs[j]+" Features: "+str(pair[1][i])
+        j+=1
         
-    print("Classifier: "+classifiers[x], "Accuracy: "+str(model_accuracy))
+    print("Classifier:", classifiers[i])
+    print("Accuracy:",str(model_accuracy))
     print(pair_wise_features)
-    f.write("Classifier: "+classifiers[x]+" Accuracy: "+str(model_accuracy))
+    f.write("Classifier: "+classifiers[i])
+    f.write("\n")
+    f.write("Accuracy: "+str(model_accuracy))
     f.write("\n")
     f.write(pair_wise_features)
     f.write("\n")
 
 
 
-
-#find the abosulte best model...
-best_model_types_and_num_features = []
+#find the absolute best model...
+best_classifer_and_number_features_per_personailty_pair = ""
 best_model_accuracy  = 1
 
-
-
-#there is number of features included and classifiers...
+i = 0
 for pair in Best_in_class:
     acc_with_model_type = list(zip(pair[0], pair[1], classifiers))
     acc_with_model_type = sorted(acc_with_model_type, key = (lambda x: x[0]) ,reverse = True)
     best_model_accuracy*= acc_with_model_type[0][0]
-    best_model_types_and_num_features.append("classifier: "+str(acc_with_model_type[0][2])+" nof features: "+str(acc_with_model_type[0][1]))
-
+    best_classifer_and_number_features_per_personailty_pair+=("Pair: "+str(pairs[i])+ " Classifier: "+str(acc_with_model_type[0][2])+" Number of features: "+str(acc_with_model_type[0][1])+" ")
+    i+=1
 
 
 #Print and output the best model accuracy and the top models for each personality pair
-f.write("Best model accuracy" + str(best_model_accuracy))
+f.write("Myers Briggs Prediction from the best of each Classifier:")
 f.write("\n")
-f.write(" ".join(best_model_types_and_num_features))
+f.write("Best model accuracy: " + str(best_model_accuracy))
+f.write("\n")
+f.write(best_classifer_and_number_features_per_personailty_pair)
 f.close()
 print("Myers Briggs Prediction from the best of each Classifier:")
-print("Best model accuracy", best_model_accuracy)
-print(best_model_types_and_num_features)
+print("Best model accuracy:", best_model_accuracy)
+print(best_classifer_and_number_features_per_personailty_pair)
   
 
 
@@ -354,3 +350,31 @@ print("Full compute time:",float((time.time() - time_t)/60), "Minutes")
 # Myers Briggs Prediction from the best of each Classifier:
 # 0.4738944
 # Full compute time: 414.5868921279907 Seconds
+
+
+
+    # local_optimas_dec.sort(reverse  = True) 
+    # local_optimas_reg.sort(reverse  = True)
+    # local_optimas_for.sort(reverse  = True)
+    # local_optimas_bays.sort(reverse  = True)
+
+
+    # #print the accuracy and the number of features for each of the classifiers for the given pair
+    # print(item, "Classification:")
+    # print("Best Predictor Function Scores:")
+    # print("Decision Tree:","Features:",local_optimas_dec[0][1],"Accuracy:",local_optimas_dec[0][0])
+    # print("Logistic Regession:","Features:",local_optimas_reg[0][1],"Accuracy:",local_optimas_reg[0][0])
+    # print("Random Forest:", "Features:",local_optimas_for[0][1],"Accuracy:",local_optimas_for[0][0])
+    # print("Naive Bays:", "Features:",local_optimas_bays[0][1],"Accuracy:",local_optimas_bays[0][0],"\n")
+    
+
+    # #Best of class is a list of pairs that include four accuracy scores for each of the classifers
+    # #and optimal number of features for used for each of the four classifiers
+    # Best_in_class.append([[local_optimas_dec[0][0],
+    #                       local_optimas_reg[0][0],
+    #                       local_optimas_for[0][0], 
+    #                       local_optimas_bays[0][0]],
+    #                       [local_optimas_dec[0][1],
+    #                       local_optimas_reg[0][1],
+    #                       local_optimas_for[0][1], 
+    #                       local_optimas_bays[0][1]]])
