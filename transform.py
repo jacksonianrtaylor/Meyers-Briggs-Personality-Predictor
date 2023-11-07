@@ -11,29 +11,28 @@ from nltk.stem import WordNetLemmatizer
 from ordered_set import OrderedSet
 
 
-# Downloads needed to work locally
+# Downloads needed to work locally:
 nltk.download('punkt')
 nltk.download('words')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-# The number of users for the least occuring personality type
+# The number of users for the least occuring personality type:
 NUM_USERS = 39
-# The number to seed in order to keep consistent runtimes
+# The number to seed in order to keep consistent runtimes:
 SEED_INT = 5
 
 
 
 def load_data():
     """
-    Load and return the data_by_type and data_by_type_full variables populated from mbti_1.csv.
-    data_by_type_full is a dictionary of personality string keys like "ENTJ" to a list of the corresposnding users of that personality type.
+    Load and return the data_by_type and data_by_type_full variables populated from "mbti_1.csv".
+    "data_by_type_full" is a dictionary of personality string keys like "ENTJ" to a list of the corresposnding users of that personality type.
     Each user is a list of 50 posts.
-    data_by_type is a dictionary of personality string keys like "ENTJ" to list of 39 random users of that type selected randomly from data_by_type_full
-    each user is a list of 50 posts.
+    "data_by_type" is a dictionary of personality string keys like "ENTJ" to list of 39 random users of that type selected randomly from data_by_type_full
+    Each user is a list of 50 posts.
     Why 39 users??? That is the number of users of the least occuring personailty type (NUM_USERS = 39)
-    (see README.md for reasons why to truncate the number of users in each category to 39)
-
+    See README.md for reason to truncate the number of users in each category to 39.
     """
 
     f = open('mbti_1.csv', newline='', encoding="utf-8")
@@ -54,37 +53,34 @@ def load_data():
 
 
 def tf_full(pairs, data_by_type):
-    """Create a list of term frequencies in the order of word_bank and there coresponding personalities."""
-    # The OrderedSet (word_bank) is used because all the unqiue terms need to be in a consistent order.
+    """Create a list of users term frequencies and there coresponding personalities."""
+    # This is used to set the consistent order of terms for a users word/term count vector (see "user_word_occurances" below).
     word_bank = OrderedSet()
-    # List of number of word occurance counts corresponding to the words in words_bank for every user. 
+    # For every user, a word count vector with the term order corresponding to the order of words in "word_bank".
     word_occurances = []
-    # This becomes a list of 4 lists of personality bits for each personality pair
+    # This becomes a list of 4 lists of personality bits for each personality pair.
     pair_types = [[],[],[],[]]
     # This is a list of integers (0-15) corresponding to personality type. 
-    # It is the same inforamtion as pair_types just in a different format.
+    # It is the same inforamtion as pair_types but in a different format.
     types = []
-    # Every personality key "w+x+y+z" to a bag of words for each user of that personality type
+    # Every personality key (like "ENTJ") to a list, which is a bag_of_words for each user of that personality type.
     bag_of_words_dict = dict()
-    # Populate the bag of words and word_bank
+    # Populate the "bag_of_words_dict" and "word_bank".
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]): 
         bag_of_words_dict[w+x+y+z] = []
         for i in range (0,NUM_USERS): 
             bag_of_words_dict[w+x+y+z].append([])
-            update_word_bank(bag_of_words_dict, word_bank ,data_by_type,i, w+x+y+z)           
+            update_word_bank(bag_of_words_dict, word_bank ,data_by_type,i, w+x+y+z) 
+
+    # c is an integer to represent personaility types (0-15)          
     c = 0    
     # Populate rows of word_occurances, pair_types, and types
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]): 
         for i in range (0,NUM_USERS):   
-            # init word occurances for a user
             user_word_occurances = [0] * len(word_bank)
-            # populate user_word_occurances
             update_word_occurances(bag_of_words_dict, word_bank, user_word_occurances, i, w+x+y+z) 
-
             word_occurances.append(user_word_occurances)
-            # this populates pair_types
             populate_pairs(pair_types, pairs, w+x+y+z)
-            # c is an integer to represent personaility with an integer (0-15)
             types.append(c)    
         c = c+1               
     to_csv("tf_matrix.csv", word_occurances, word_bank, pair_types, types)
@@ -94,11 +90,11 @@ def tf_full(pairs, data_by_type):
 
 
 def update_word_bank(bag_of_words_dict, word_bank,data_by_type,x, key):
-    """Look through a single users posts and update the word bank and the bag_of_words_dict with the tokens"""
+    """Look through a single users posts and update the "word_bank" and the "bag_of_words_dict" with the tokens."""
     bag_of_words_dict[key][x] = []
     for post in data_by_type[key][x]:
         tokens_1 = word_tokenize(post)
-        # ignore cases and remove stopwords
+        # Ignore cases and remove stopwords
         tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 if token.isalpha() 
                     and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')]  
         word_bank.update(tokens_2)
@@ -109,8 +105,7 @@ def update_word_bank(bag_of_words_dict, word_bank,data_by_type,x, key):
 
 def update_word_occurances(bag_of_words_dict, word_bank, user_word_occurances,x, key):
     """
-    Populate user_word_occurances, a list of counts where each count represents the number of term ocurrances
-    for the terms in the order of the word_bank.
+    Populate "user_word_occurances", a users count vector with the term order corresponding to the order of words in "word_bank".
     """
     i = 0
     for word in word_bank:
@@ -121,7 +116,7 @@ def update_word_occurances(bag_of_words_dict, word_bank, user_word_occurances,x,
 
 
 def populate_pairs(pair_types, pairs, key):
-    """this populates the 4 pair_types of the user each represented by a 1 or 0""" 
+    """This populates the 4 pair_types of the user (each pair has the value 1 or 0)""" 
     i =0
     for item in pairs:
         if(item[0] == key[i]): 
@@ -132,15 +127,15 @@ def populate_pairs(pair_types, pairs, key):
 
 
 def to_csv(file_name, word_occurances, word_bank, pair_types,  types): 
-    """output term frequencies and personality columns to tf_matrix.csv"""
-    # the intial columns are the word occorances
+    """Output term frequencies and personality columns to tf_matrix.csv"""
+    # The intial columns are the word occorances.
     df = pd.DataFrame(data=word_occurances, columns=list(word_bank))  
-    # these columns are the personailty pair columns 
+    # These columns are the personailty pair columns.
     df["_I_E_"] = pair_types[0]
     df["_N_S_"] = pair_types[1]
     df["_T_F_"] = pair_types[2]
     df["_J_P_"] = pair_types[3]
-    # this column is the full type column ranging from int (0-15)
+    # This column is the full type column ranging from int (0-15)
     df["_Type_"] = types
     f = open(file_name, 'w', encoding='utf-8')
     df.to_csv(f,index  = False)
@@ -166,38 +161,6 @@ def main():
     print("Full compute time:",float((time.time() - time_t)/60), "Minutes")
 
 
-
 if __name__ == "__main__":
     main()
 
-
-
-# both: bag of words split...
-
-# version with:
-#  tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
-#              if WordNetLemmatizer().lemmatize(token.lower()) in word_bank]
-# Full compute time: 6.870408161481222 Minutes
-
-
-# version with:
-#  tokens_2 = [WordNetLemmatizer().lemmatize(token.lower()) for token in tokens_1 
-#              if token.isalpha() and WordNetLemmatizer().lemmatize(token.lower()) not in stopwords.words('english')] 
-#  Full compute time: 9.52508595387141 Minutes
-
-
-# version with updates bag of words:
-# Full compute time: 6.733085672060649 Minutes
-
-
-# misc:
-# why is a variables like bag of words not updated in the above function to save processing??? 
-
-# the bag of words and the word_bank could be sorted
-# the wordbank only needs to be sorted once but the bag of words is per user 
-
-# why is the conditon in the following function search the word bank???
-# Is it faster than confirming if its not in stopwords and is a alpha numerical???
-
-# can introduce a new variable, bag_of_words_dict that adds all the copies of all the words/terms tokens_2
-# it is a dictionary organized like data_by_type

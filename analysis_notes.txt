@@ -1,0 +1,50 @@
+
+
+#note: need to implement main!!!
+
+#last output
+
+# Complete Myers Briggs Prediction for individual Classifiers:
+# Decision Tree:  0.41827968
+# Logistic Regression:  0.4061952
+# Random Forest:  0.440832
+# Naive Bays:  0.3005184
+
+# Myers Briggs Prediction from the best of each Classifier:
+# 0.4738944
+# Full compute time: 414.5868921279907 Seconds
+
+
+
+    # local_optimas_dec.sort(reverse  = True) 
+    # local_optimas_reg.sort(reverse  = True)
+    # local_optimas_for.sort(reverse  = True)
+    # local_optimas_bays.sort(reverse  = True)
+
+
+    # #print the accuracy and the number of features for each of the classifiers for the given pair
+    # print(item, "Classification:")
+    # print("Best Predictor Function Scores:")
+    # print("Decision Tree:","Features:",local_optimas_dec[0][1],"Accuracy:",local_optimas_dec[0][0])
+    # print("Logistic Regession:","Features:",local_optimas_reg[0][1],"Accuracy:",local_optimas_reg[0][0])
+    # print("Random Forest:", "Features:",local_optimas_for[0][1],"Accuracy:",local_optimas_for[0][0])
+    # print("Naive Bays:", "Features:",local_optimas_bays[0][1],"Accuracy:",local_optimas_bays[0][0],"\n")
+    
+
+    # #Best of class is a list of pairs that include four accuracy scores for each of the classifers
+    # #and optimal number of features for used for each of the four classifiers
+    # best_in_class.append([[local_optimas_dec[0][0],
+    #                       local_optimas_reg[0][0],
+    #                       local_optimas_for[0][0], 
+    #                       local_optimas_bays[0][0]],
+    #                       [local_optimas_dec[0][1],
+    #                       local_optimas_reg[0][1],
+    #                       local_optimas_for[0][1], 
+    #                       local_optimas_bays[0][1]]])
+
+
+            # slower version of the above without the use of multithreading
+        # local_optima_1 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("dec_tree_model",X, y), full_output  = True, disp   =0)
+        # local_optima_2 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("log_reg_model",X, y), full_output  = True, disp   =0)
+        # local_optima_3 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("rand_forest_model",X, y), full_output  = True, disp   =0)
+        # local_optima_4 = fminbound(classification_tests.test_features,x1 = (i)*gap_size+1, x2 =(i+1)*gap_size+1 , args = ("naive_bays_model",X, y), full_output  = True, disp   =0)
