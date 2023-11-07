@@ -1,67 +1,64 @@
-# Goal:
+Data: 
 
-The goal of the project is to predict a users personality score based on their last 50 posts on a site called personality cafe.
-
-
-# Data Source:
-
+Data Source:
 https://www.kaggle.com/datasets/datasnaek/mbti-type
 
-The posts were originally collected from personailty cafe and formated into this collection.
+The posts were collected from personailty cafe...
 
 
-# About Meyers Briggs:
+About Meyers Briggs:
 
-Meyers briggs is a personailty test that groups people into 1 of 16 personailties.
-There are four personalities pairs that make up the entire personailtity profile that which acording to meyers briggs, you can only be one or the other.
-Meaning that there are 2^4 = 16 possible personalities. 
-One can predict someones personality by combining all the predictions for the individual pairs.
-
-
+Meyers briggs is a personailty test that groups people into 1 of 16 personailties
+There are four personalities pairs that make up the entire personailtity profile that which acording to m eyers briggs you can be one or the other
+Meaning that there are 2^4 = 16 possible personalities
+One can predict personality by combining all the predictions for the individual pairs
 More can be learned here:
 https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/ 
 
 
-# Process: 
+Question:
 
-## Transform.py
+Is there a seperate train and test dataset?: yes the data is split within the functions for each model
+Although target values are stratified with 50/50 for the current pair do the other personalities
+effect the model train and test process???
+answer: no, the only feature data used is the term frequency, bais of other personalities are not build into the model
 
-- The text data of the 50 posts for each user is combined and converted into a sparse tf matrix of word/term frequencies with column names representing the entire set of words/terms found in at least one users posts.
+
+Goal:
+
+- The goal of the project is to predict a users personality score based on their last 50 posts on a site called personality cafe.
+
+
+Process: 
+
+- The text data of the 50 posts for each user is combined and converted into a sparse tf matrix of word/term frequencies with column names representing the entire set of words/terms found in at least one users posts
 
 - The first py file in the project (transform.py) transforms the raw data from mbti_1.csv into this tf matrix 
 
-- This matrix along with some columns that represent the users personality type is saved in tf_matrix.csv
+- this matrix along with some columns that represent the users personality type is saved in tf_matrix.csv
+
+- the second py file trains a variety of models to predict and score the personality of different personality pairs of the test data
+
+- There are 4 kinds of models trained and tested to predict each personailty pair: naive bays, logistic regression, decision tree, and random forest
+(these are the model types)
 
 
-### Analysis.py
 
-- The second py file (analysis.py) trains a variety of models to predict the correct personality option for each pair.
+- Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the analysis.py uses an optimization technique to reduce the number of features to a more managable and optimal number
 
-* Note: This means that for each model type, there are  4 different sub models a that are specialized to predict a certain pair.
+The best model for each of these classes is found for each personality pair using optimization, meaning the correct number of the most influencing features (number of words/terms) is used
 
-* The 4 kinds of models trained and tested to predict each personailty pair are naive bays, logistic regression, decision tree, and random forest
+multithreading is implemented with model optimizers which losely gives the ability to the cpu to schedule processes in a more efficient way, decreasing the runtime 
 
-* Since there are four personality pairs for each of 4 modelt types, there exists 16 models.
+since there are 4 personality pairs and 4 model categories, this means there are 16 unqiue models if there is to be a single best model with an optimal number of features for each pair-model type combination
 
-* However, this hasn't yet considered  a very sensitive parameter, number of features...
+The full personality prediction (one out of 16) is the combination of predictions for each of the 4 personality pairs 
 
-* Too many features can overwelm a model and too little features is insuffient for model profliing.
+Using this idea, all a pairwise model needs to focus on is the correct selection for a single pair, while an overall model that indicates the full personailty uses the outputs of the pairwise models to make a full prediction.
 
-* Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the analysis.py uses an optimization technique to reduce the number of features to a more managable and optimal number
+The best model for the entire prediction of one out of 16 personalities, combines the best models for each pair.
 
-* The best model for a specific type is found for each personality pair using optimization, meaning the correct number of the most influencing features (number of words/terms) is used
 
-* Multithreading is implemented with model optimizers which losely gives the ability to the cpu to schedule processes in a more efficient way, decreasing the runtime 
-
-* Since there are 4 personality pairs and 4 model categories, this means there are 16 unqiue models if there is to be a single best model with an optimal number of features for each pair-model type combination
-
-* The full personality prediction (one out of 16) is the combination of predictions for each of the 4 personality pairs 
-
-* Using this idea, all a pairwise model needs to focus on is the correct selection for a single pair, while an overall model that indicates the full personailty uses the outputs of the pairwise models to make a full prediction.
-
-* The best model for the entire prediction of one out of 16 personalities, combines the best models for each pair.
-
----
 
 
 - It is important to note that the same number of users of each personality (39) for each of the 16 personalities is

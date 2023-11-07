@@ -20,7 +20,7 @@ WORKDIR /home/files
 #These are the files to run inside the container (They don't change):
 COPY transform.py .
 COPY analysis.py .
-COPY both.sh .
+COPY both_scripts.sh .
 
 #This file is raw data that is transformed into tf_matrix.csv by the transform.py program 
 #It also doesn't change
