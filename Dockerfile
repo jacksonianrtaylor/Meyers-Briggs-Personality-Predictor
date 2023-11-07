@@ -1,22 +1,13 @@
 FROM ubuntu:latest
 
-#https://stackoverflow.com/questions/23935141/how-to-copy-docker-images-from-one-host-to-another-without-using-a-repository
-#save docker images
 
-#why use docker: 
-#https://towardsdatascience.com/why-using-docker-for-machine-learning-74c927ceb6c4
-
-
-#this may be the best option besides steps from git to execution
-
-
-RUN apt-get update && apt-get install -y python3 \
+# Note: An older version of python is specified to mitigate the chance that a newer verison of python runs into an issue with the notebook code.
+# Python 3.10.7 worked on personal machine
+RUN apt-get update && apt-get install -y python3.10 \
     python3-pip
 
 
-WORKDIR /home/python_files
-
-#install all packages for both.py files
+#Install packages rquried for both python files
 RUN pip3 install scipy
 RUN pip3 install scikit-learn
 RUN pip3 install pandas
@@ -24,24 +15,25 @@ RUN pip3 install nltk
 RUN pip3 install ordered_set
 
 
+WORKDIR /home/files
 
-#do we really need to copy to the container???
+#These are the files to run inside the container (They don't change):
 COPY transform.py .
-COPY  analysis.py .
+COPY analysis.py .
 COPY both.sh .
 
-COPY tf_matrix.csv .
+#This file is raw data that is transformed into tf_matrix.csv by the transform.py program 
+#It also doesn't change
 COPY mbti_1.csv .
-COPY results.csv .
+
+#Are these files necessary???
+#This file is overwritten by the transform.py program
+# COPY tf_matrix.csv .
+#This file is overwritten by the analysis.py program
+# COPY results.txt .
 
 
-#note this seems to run when the image is being built
-#not just when the image is run 
-
-# RUN ./both.sh
-
-#this might be the only way to force these scripts to run only when the image is run ratehr than being built
-
+#Run the script that runs transform.py and analysis.py in order 
 CMD ["./both.sh"]
 
 

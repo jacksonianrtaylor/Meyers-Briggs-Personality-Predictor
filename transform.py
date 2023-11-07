@@ -12,7 +12,7 @@ from nltk.stem import WordNetLemmatizer
 from ordered_set import OrderedSet
 
 
-#downloads needed to work locally
+#Downloads needed to work locally
 nltk.download('punkt')
 nltk.download('words')
 nltk.download('stopwords')
