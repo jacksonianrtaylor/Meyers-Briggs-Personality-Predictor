@@ -34,7 +34,7 @@ COPY mbti_1.csv .
 
 
 #Run the script that runs transform.py and analysis.py in order 
-CMD ["./both.sh"]
+CMD ["./both_scripts.sh"]
 
 
 
