@@ -3,14 +3,14 @@
 The goal of the project is to predict a users personality score based on their last 50 posts on a site called personality cafe.
 
 
-# Data Source:
+## Data Source:
 
 https://www.kaggle.com/datasets/datasnaek/mbti-type
 
 The posts were originally collected from personailty cafe and formated into this collection.
 
 
-# About Meyers Briggs:
+## About Meyers Briggs:
 
 Meyers briggs is a personailty test that groups people into 1 of 16 personailties.
 There are four personalities pairs that make up the entire personailtity profile that which acording to meyers briggs, you can only be one or the other.
@@ -35,123 +35,112 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 ### Analysis.py
 
-- The second py file (analysis.py) trains a variety of models to predict the correct personality option for each pair.
+- The second python file (analysis.py) trains a variety of models to predict the correct personality option for each of the four personality pairs.
 
-* Note: This means that for each model type, there are  4 different sub models a that are specialized to predict a certain pair.
+* Note: This means that for each model type, there are  4 different sub models that are specialized to predict a certain pair.
 
 * The 4 kinds of models trained and tested to predict each personailty pair are naive bays, logistic regression, decision tree, and random forest
 
-* Since there are four personality pairs for each of 4 modelt types, there exists 16 models.
+* Since there are 4 model types for each of the 4 personality pairs, there exists 16 models.
 
-* However, this hasn't yet considered  a very sensitive parameter, number of features...
+* However, this hasn't yet considered  a very sensitive parameter, number of features.
 
-* Too many features can overwelm a model and too little features is insuffient for model profliing.
+* Too many features can overwelm a model and too little features is insuffient for model profliing and perfromance.
 
-* Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the analysis.py uses an optimization technique to reduce the number of features to a more managable and optimal number
+* Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the analysis.py uses an optimization technique to reduce the number of features to a more managable and optimal number.
 
-* The best model for a specific type is found for each personality pair using optimization, meaning the correct number of the most influencing features (number of words/terms) is used
+* The best model of a specific type for a certain pair (1 out of 16) is found using optimization, meaning the correct number (or close to best number) of the most influencing features is found.
 
-* Multithreading is implemented with model optimizers which losely gives the ability to the cpu to schedule processes in a more efficient way, decreasing the runtime 
+* The fminbound function is what determines the best number of features within an certain integer bounds for a certain model type.
 
-* Since there are 4 personality pairs and 4 model categories, this means there are 16 unqiue models if there is to be a single best model with an optimal number of features for each pair-model type combination
+* Multithreading is implemented with the fminbound function. Using the same bounds for the number of features, each model type is optimized for the best number of features between those bounds and each of these 4 functions are run together.
 
-* The full personality prediction (one out of 16) is the combination of predictions for each of the 4 personality pairs 
-
-* Using this idea, all a pairwise model needs to focus on is the correct selection for a single pair, while an overall model that indicates the full personailty uses the outputs of the pairwise models to make a full prediction.
-
-* The best model for the entire prediction of one out of 16 personalities, combines the best models for each pair.
-
----
+* What "together" means in this context is that the program can complete the 4 fminbound tasks with partially concurrent execution, allowing usage of a higher percentage of the cpu and speeding up the overall process.
 
 
-- It is important to note that the same number of users of each personality (39) for each of the 16 personalities is
-used in the test train process for every model. 
+* As state above, there are 16 models for each model type/personality combination
+and the best number of features of those 16 models types is found by testing many integer bounds with the fminbound functions.
 
-- There are 624 different users which is 39 users for each of 16 personalities
-
-- For each of the four personality pairs, these 624 users are split evenly 50/50 into 312 users of one personality in the pair and 312 users of the opposite personality in the pair
-
-- When the users are preprocessed (a critical process before each model), the number of test users is 50 and the number of train users is 624-50 = 574
-
-- With the stratify option, the 50/50 split for any given personality pair of the entire dataset, is maintained for the test users and train users
-meaning y_train and y_test both have an even split for each personality pair  
-
-- The even split of one personality vs the other for a personality pair is critical to build a model wih no popularity bias
-
-- popularity bias is when the number of occurance of a personalilty in the train data effects how a users personality is predicted by the model
-
-- no popularity bias means that one personality pair being a certan way does not influence the chance of any other personality pair being a certain way
-
-- The effect of no popularity bias, is that the training and testing for any given pair can be independent from the training and testing any other personality pair, and the prediction of the complete personality (4 different pairs) can be achived by applying each model.
-
-- Whats more, the accuracy score of the full myers brggs prediction (one out of 16) can be aproximated by muliplying the accuracy scores of each distinct pairwise model 
-
-- The analysis.py program, applies and prints the accuracy results of a single model type, trained and tested for each personality type and feature optimzed for that personailty pair,
-
-- It also prints the accuracy results of the absolute best model for each personality pair (the best feature usage for the best model type)
+* Once the best 16 models have been found, it is time to apply their accuracies to estimate the accaucies of models that can predict the entire personality (all 4 pairs).
 
 
+* ### Question: How is the accuacy of full personality predictions approximated from individual pairwaise accuracy scores?
+    ### Answer: Using the law of independence.
+    
+* #### Enforcing independence: 
 
+    * In order to force independence between personality pairs, it is important to note that the same number of users of each personality (39) for each of the 16 personalities is used in the test train process for every model. 
+
+    * There are 624 different users which is 39 users for each of 16 personalities.
+
+    * For each of the four personality pairs, these 624 users are split evenly 50/50 into 312 users of one personality in the pair and 312 users of the opposite personality in the pair
+
+    * When the users are preprocessed (a critical process before each model), the number of test users is 50 and the number of train users is 624-50 = 574
+
+    * With the stratify option, the 50/50 split for any given personality pair of the entire dataset, is maintained for the test users and train users meaning y_train and y_test both have an even split for each personality pair  
+
+- The implications of independence is that the accuracy score of the full myers briggs prediction (one out of 16) can be aproximated by multiplying the accuracy scores for a selected model for each pair.
+
+- Besides enforcing independence, the even split of one personality vs the other for a personality pair is critical to build a model with no popularity bias.
+
+- Popularity bias is when the number of occurances of a personalilty in the train data effects how a users personality is predicted by the model.
+
+- No popularity bias means that one personality pair being a certan way does not influence the chance of any other personality pair being a certain way.
+
+- For each of the four model types, the analysis.py program outputs the accuracy results of the best of this model type on each personality pair. 
+
+- It also oputputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model  out of 4 is used for each personality type.
 
 
 
 
-misc:
+# How to install/run:
 
-- This also means that the full data set can be used to train/test every personality pair
+## Automated Way (with docker):
 
-- If the models were used to simply predict the entire personality (1 out of 16) then data is not reused for each pair and there is less training potential (it would require a larger dataset)
-
-
-- The process involves training multiple models on each personality pair
-with the intention being that some models are better suited to predict different personality pairs. The best model for the entire prediction 1 out of 16 personalities, combines the best models for each pair.
-
-- Using this idea, all a pairwise model needs to focus on is the correct selection for a single pair, while an overall model that indicated full personailty uses the outputs of the pairwise models to make a full prediction.
-
-- (LOOK) this is not exactly right...
-on average the chosen train data is split 50/50 but there is variation.
-Solution: stratify the outputs
-
-...
+* Requirements:
+    * Git
+    * Docker
 
 
+1. Clone the repository with git.
+2. Navigate to the main project directory.
+3. Build docker image using the provided Dockerfile using this shell command:
 
-How to install/run:
+    ```shell
+    docker build -t personality_guess_image .
+    ```
 
-Quick Way (with docker):
+4. Using the same shell, create a contianer from the image:
 
-requirements:
--Git
--Dockerdesktop
--Sufficent memory
+    ```shell
+    docker run -t personality_guess_image 
+    ```
 
-clone the repository
-navigate to the main project directory
-build docker image using the provided Dockerfile:
-run the created docker image:
-observe outputs from the console of the running image
-computation can take some time (estimation)
+5. observe outputs from the console of the running image
 
 
 
-Explicit Way (no docker):
 
-requirements:
--Git
--Sufficent memory
--python3 and pip (my working python version: 3.10.7)
+## Manual Way (no docker):
 
-clone the repository
+* Requirements:
+    * Git
+    * python3 and pip (my working python version: 3.10.7)
 
-with python and pip:
-create a python virtual env in the main project directory:
-install the following packages to the virtual env:
-scipy, scikit-learn, pandas, nltk, ordered_set
-activate the virtual environment
-use python command to run the transform.py (and observe results in console)
-after completion of transform.py, run analysis.py (and observe results in console)
+1. Clone the repository with git.
 
-computation can take some time (estimation)
+2. With python3 and pip:
+    1. Create a python virtual env in the main project directory. (my working python version: 3.10.7).
+    2. Install the following packages to the virtual env: scipy, scikit-learn, pandas, nltk, ordered_set
+    3. Activate the virtual environment
 
+3. Run transform.py (and observe results in console).
+
+4. After completion of transform.py, Run analysis.py (and observe results in console).
 
 
+
+
+
+LOOK: should there b estimateion for the time to run?
