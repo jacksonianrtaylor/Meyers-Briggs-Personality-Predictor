@@ -7,7 +7,7 @@ The goal of the project is to predict a users personality score based on their l
 
 https://www.kaggle.com/datasets/datasnaek/mbti-type
 
-The posts were originally collected from personailty cafe and formated into this collection.
+The data file (mbti_1.csv) is a list of users personality types and a corresponding string of their 50 last posts from the personailty cafe forum. Each post is seperated by "|||".
 
 
 ## About Meyers Briggs:
@@ -28,16 +28,16 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 - The text data of the 50 posts for each user is combined and converted into a sparse tf matrix of word/term frequencies with column names representing the entire set of words/terms found in at least one users posts.
 
-- The first py file in the project (transform.py) transforms the raw data from mbti_1.csv into this tf matrix 
+- The first python program in the project (transform.py) transforms the raw data from mbti_1.csv into this tf matrix.
 
-- This matrix along with some columns that represent the users personality type is saved in tf_matrix.csv
+- This matrix along with some columns that represent the users personality type is saved in tf_matrix.csv.
 
 
-### Analysis.py
+## Analysis.py
 
-- The second python file (analysis.py) trains a variety of models to predict the correct personality option for each of the four personality pairs.
+- The second python program (analysis.py) uses tf_matrix.csv to train a variety of models to predict the correct personality option for each of the four personality pairs.
 
-* Note: This means that for each model type, there are  4 different sub models that are specialized to predict a certain pair.
+* This means that for each model type, there are  4 different sub models that are specialized to predict a certain pair.
 
 * The 4 kinds of models trained and tested to predict each personailty pair are naive bays, logistic regression, decision tree, and random forest
 
@@ -45,9 +45,9 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 * However, this hasn't yet considered  a very sensitive parameter, number of features.
 
-* Too many features can overwelm a model and too little features is insuffient for model profliing and perfromance.
+* Too many features can overwelm a model and too little features is insuffient for model profiling and perfromance.
 
-* Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the analysis.py uses an optimization technique to reduce the number of features to a more managable and optimal number.
+* Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the program uses an optimization technique to reduce the number of features to a more managable and optimal number.
 
 * The best model of a specific type for a certain pair (1 out of 16) is found using optimization, meaning the correct number (or close to best number) of the most influencing features is found.
 
@@ -59,14 +59,14 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 
 * As state above, there are 16 models for each model type/personality combination
-and the best number of features of those 16 models types is found by testing many integer bounds with the fminbound functions.
+and the best number of features of those 16 model types is found by testing many integer bounds with the fminbound functions.
 
-* Once the best 16 models have been found, it is time to apply their accuracies to estimate the accaucies of models that can predict the entire personality (all 4 pairs).
+* Once the best 16 models have been found, it is time to apply their accuracies to estimate the accuracies of models that can predict the entire personality (all 4 pairs).
 
 
 * ### Question: How is the accuacy of full personality predictions approximated from individual pairwaise accuracy scores?
     ### Answer: Using the law of independence.
-    
+
 * #### Enforcing independence: 
 
     * In order to force independence between personality pairs, it is important to note that the same number of users of each personality (39) for each of the 16 personalities is used in the test train process for every model. 
@@ -89,7 +89,7 @@ and the best number of features of those 16 models types is found by testing man
 
 - For each of the four model types, the analysis.py program outputs the accuracy results of the best of this model type on each personality pair. 
 
-- It also oputputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model  out of 4 is used for each personality type.
+- It also outputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model  out of 4 is used for each personality type.
 
 
 
@@ -105,19 +105,20 @@ and the best number of features of those 16 models types is found by testing man
 
 1. Clone the repository with git.
 2. Navigate to the main project directory.
-3. Build docker image using the provided Dockerfile using this shell command:
+3. Start the docker daemon.
+4. Build docker image using the provided Dockerfile using this shell command:
 
     ```shell
     docker build -t personality_guess_image .
     ```
 
-4. Using the same shell, create a contianer from the image:
+5. Using the same shell, create a container from the image:
 
     ```shell
-    docker run -t personality_guess_image 
+    docker run personality_guess_image 
     ```
 
-5. observe outputs from the console of the running image
+6. Observe outputs from the console of the shell of the running container.
 
 
 
@@ -135,7 +136,7 @@ and the best number of features of those 16 models types is found by testing man
     2. Install the following packages to the virtual env: scipy, scikit-learn, pandas, nltk, ordered_set
     3. Activate the virtual environment
 
-3. Run transform.py (and observe results in console).
+3. Run transform.py in the main project directory (and observe results in console).
 
 4. After completion of transform.py, Run analysis.py (and observe results in console).
 
@@ -143,4 +144,8 @@ and the best number of features of those 16 models types is found by testing man
 
 
 
-LOOK: should there b estimateion for the time to run?
+LOOK: Should there be estimation for the time to run?
+LOOK: What about short cuts for runing the program???
+LOOK: do u need to specify how to turn on docker???
+LOOK: should there be a mesasge to print to show the start of the
+program???
