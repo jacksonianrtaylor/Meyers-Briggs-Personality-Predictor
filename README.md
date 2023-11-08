@@ -24,6 +24,7 @@ The data file (mbti_1.csv) is a list of users personality types and a correspond
 # Process: 
 
 ## Transform.py
+[Click here to view the transform.py program](transform.py)
 
 - The text data of the 50 posts for each user is combined and converted into a sparse tf matrix of word/term frequencies with column names representing the entire set of words/terms found in at least one users posts.
 
@@ -33,6 +34,8 @@ The data file (mbti_1.csv) is a list of users personality types and a correspond
 
 
 ## Analysis.py
+
+[Click here to view the analysis.py program](transform.py)
 
 * The second python program (analysis.py) uses tf_matrix.csv to train a variety of model types to predict the correct personality option for each of the four personality pairs.
 
