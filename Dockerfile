@@ -26,14 +26,8 @@ COPY both_scripts.sh .
 #It also doesn't change
 COPY mbti_1.csv .
 
-#Are these files necessary???
-#This file is overwritten by the transform.py program
-# COPY tf_matrix.csv .
-#This file is overwritten by the analysis.py program
-# COPY results.txt .
 
-
-#Run the script that runs transform.py and analysis.py in order 
+#Run the script that runs transform.py and analysis.py in order.
 CMD ["./both_scripts.sh"]
 
 
