@@ -1,13 +1,6 @@
 # Goal:
 
-The goal of the project is to predict a users personality score based on their last 50 posts on a site called personality cafe.
-
-
-## Data Source:
-
-https://www.kaggle.com/datasets/datasnaek/mbti-type
-
-The data file (mbti_1.csv) is a list of users personality types and a corresponding string of their 50 last posts from the personailty cafe forum. Each post is seperated by "|||".
+The goal of the project is to score an effective models accuracy at predicting a users myers briggs personality based on their last 50 posts on a site called personality cafe.
 
 
 ## About Meyers Briggs:
@@ -20,6 +13,12 @@ One can predict someones personality by combining all the predictions for the in
 
 More can be learned here:
 https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/ 
+
+## Data Source:
+
+https://www.kaggle.com/datasets/datasnaek/mbti-type
+
+The data file (mbti_1.csv) is a list of users personality types and a corresponding string of their 50 last posts from the personailty cafe forum. Each post is seperated by "|||".
 
 
 # Process: 
@@ -35,9 +34,8 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 ## Analysis.py
 
-- The second python program (analysis.py) uses tf_matrix.csv to train a variety of models to predict the correct personality option for each of the four personality pairs.
+* The second python program (analysis.py) uses tf_matrix.csv to train a variety of model types to predict the correct personality option for each of the four personality pairs.
 
-* This means that for each model type, there are  4 different sub models that are specialized to predict a certain pair.
 
 * The 4 kinds of models trained and tested to predict each personailty pair are naive bays, logistic regression, decision tree, and random forest
 
@@ -45,7 +43,7 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 * However, this hasn't yet considered  a very sensitive parameter, number of features.
 
-* Too many features can overwelm a model and too little features is insuffient for model profiling and perfromance.
+* Too many features can overwelm a model and too little features is insuffient for model profiling and performance.
 
 * Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the program uses an optimization technique to reduce the number of features to a more managable and optimal number.
 
@@ -79,7 +77,7 @@ and the best number of features of those 16 model types is found by testing many
 
     * With the stratify option, the 50/50 split for any given personality pair of the entire dataset, is maintained for the test users and train users meaning y_train and y_test both have an even split for each personality pair  
 
-- The implications of independence is that the accuracy score of the full myers briggs prediction (one out of 16) can be aproximated by multiplying the accuracy scores for a selected model for each pair.
+- The implications of independence is that the accuracy score of the full myers briggs prediction (one out of 16) can be aproximated by multiplying the accuracy scores of a selected model for each pair. The operation looks like this: (acc_1\*acc_2\*acc_3\*acc_4)
 
 - Besides enforcing independence, the even split of one personality vs the other for a personality pair is critical to build a model with no popularity bias.
 
@@ -87,9 +85,10 @@ and the best number of features of those 16 model types is found by testing many
 
 - No popularity bias means that one personality pair being a certan way does not influence the chance of any other personality pair being a certain way.
 
-- For each of the four model types, the analysis.py program outputs the accuracy results of the best of this model type on each personality pair. 
+- For each of the four model types, the analysis.py program outputs the accuracy results using this consistent model type on each personality pair and combining like above: (acc_1\*acc_2\*acc_3\*acc_4)
 
-- It also outputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model  out of 4 is used for each personality type.
+
+- It also outputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model  out of 4 model types is used for each personality type. Again, the accuracy of the entire 4 pair predictions looks like this: (acc_1\*acc_2\*acc_3\*acc_4)
 
 
 
