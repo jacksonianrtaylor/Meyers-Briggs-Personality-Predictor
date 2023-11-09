@@ -8,6 +8,8 @@ from threading import Thread
 from scipy.sparse import csr_matrix
 from scipy.optimize import fminbound
 from scipy.optimize import minimize
+from scipy.optimize import dual_annealing
+from scipy.optimize import differential_evolution
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
@@ -115,10 +117,12 @@ class tests():
         # https://blog.finxter.com/python-list-copy/
         # Copy is atomic and rest of the variables are thread safe in the current namespace.
         # This also re-intitializes the data in the local scope. 
-        i = int(i)
-        X = X.copy()
-        y = y.copy()    
-        X_train,X_test,y_train,y_test = self.preprocess(i,X, y)   
+
+        #LOOK does this conversion work???
+        num_features = int(i[0])
+        X_copy = X.copy()
+        y_copy = y.copy()    
+        X_train,X_test,y_train,y_test = self.preprocess(num_features,X_copy, y_copy)   
 
         # Model selector:
         # The negation of the real accuracy is returned from test_features because the fminbound optimizer that uses this function...
@@ -178,86 +182,45 @@ def main():
     for item in pairs:  
         # Target values of the current personality pair:
         y = list(data[item])
-        # Each model is tested for each pair prediction.
-        local_optimas_dec  = []
-        local_optimas_reg  = []
-        local_optimas_for  = []
-        local_optimas_bays = []   
-        # "i" and "gap_size" determine the bounds of the fminbound opimization on the test_features function used below.
+          
+        # The optimiztion function differential_evolution finds the best value between the bounds of the number of features that maximizes model perfrormance.
+        # Multithreading is used here for potential improvements in runtime.  
+        t1 = return_thread(group=None,target=differential_evolution,
+                        kwargs={"func" : classification_tests.test_features,"bounds" : [(1, 48)],
+                                 "args": ("dec_tree_model",X, y)})
+        t2 = return_thread(group=None,target=differential_evolution,
+                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
+                                 "args": ("log_reg_model",X, y)})
+        t3 = return_thread(group=None,target=differential_evolution,
+                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
+                                 "args": ("rand_forest_model",X, y)})
+        t4 = return_thread(group=None,target=differential_evolution,
+                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
+                                 "args": ("naive_bays_model",X, y)})
+        t1.start()
+        t2.start()
+        t3.start()
+        t4.start()  
 
-        # Look: Need to explian that the reason for iterting over certain bounds instead of a single big bound is due to the fact...
-        # that the distribution is biimodle or higher
-        # Need to see other function: https://chat.openai.com/c/a196a6cd-63d3-4d69-ad31-4daca46c9d25
-        # 
-
-
-        i = 0
-        gap_size = 8
-
-        start  = 0
-        end = 48
-        print(item, "Classification:")
-        while(i<6):           
-            # The optimiztion function fminbound finds the best value between the bounds of the number of features ((i)*gap_size+1 to (i+1)*gap_size+1)...
-            # that maximizes model perfrormance.
-            # Multithreading is used here for potential improvements in runtime.  
-            t1 = return_thread(group=None,target=fminbound,
-                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("dec_tree_model",X, y), "full_output" : True, "disp" :0})
-            t2 = return_thread(group=None,target=fminbound,
-                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("log_reg_model",X, y),"full_output" : True, "disp" :0})
-            t3 = return_thread(group=None,target=fminbound,
-                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("rand_forest_model",X, y),"full_output" : True, "disp" :0})
-            t4 = return_thread(group=None,target=fminbound,
-                            kwargs={"func" : classification_tests.test_features,"x1" : (i)*gap_size+1, "x2" : (i+1)*gap_size+1,"args": ("naive_bays_model",X, y),"full_output" : True, "disp" :0})
-            t1.start()
-            t2.start()
-            t3.start()
-            t4.start()  
-
-            local_optima_dec = t1.join()
-            local_optima_reg = t2.join()
-            local_optima_for = t3.join()
-            local_optima_bays = t4.join()   
+        optimal_dec_result = t1.join()
+        optimal_reg_result = t2.join()
+        optimal_for_result = t3.join()
+        optimal_bays_result = t4.join()   
             
-            
-            # The negation is returned (see "test_features" function)
-            local_optimas_dec.append((-local_optima_dec[1], int(local_optima_dec[0])))
-            local_optimas_reg.append((-local_optima_reg[1], int(local_optima_reg[0])))
-            local_optimas_for.append((-local_optima_for[1], int(local_optima_for[0])))
-            local_optimas_bays.append((-local_optima_bays[1], int(local_optima_bays[0])))  
-
-
-            # -local_optima_dec[1] is an accuracy score for the best local (within a range of number of features) model for decision tree.
-            # int(local_optima_dec[0]) is number of features for the best local(within a range of number of features) model for decision tree.
-            # A similair case is true for the other classfiers.
-            # This is used to show progress:
-            print("Iteration:", i+1)
-            print("Decision Tree Test:",  "Accuracy:",-local_optima_dec[1], "Features:", int(local_optima_dec[0]))                       
-            print("Logistic Regression Test:",  "Accuracy:",-local_optima_reg[1], "Features:", int(local_optima_reg[0]))       
-            print("Random Forest Test:", "Accuracy:",-local_optima_for[1], "Features:", int(local_optima_for[0]))  
-            print("Naive Bays Test:",  "Accuracy:",-local_optima_bays[1], "Features:", int(local_optima_bays[0]),"\n")  
-            
-            i += 1
-
-        # Find the model with the most optimal number of features for each classfier for the given pair.
-        # The optimal model has the highest accuracy for the classfier in question.
-        optimal_dec = max(local_optimas_dec, key = lambda x: x[0])
-        optimal_reg = max(local_optimas_reg, key = lambda x: x[0])
-        optimal_for = max(local_optimas_for, key = lambda x: x[0])
-        optimal_bays = max(local_optimas_bays, key = lambda x: x[0])
-        
 
         # Print the accuracy and the number of features for the best of each classifier for the given pair.
         print(item, "Classification:")
         print("Best Predictor Function Scores:")
-        print("Decision Tree:","Features:",optimal_dec[1],"Accuracy:",optimal_dec[0])
-        print("Logistic Regession:","Features:",optimal_reg[1],"Accuracy:",optimal_reg[0])
-        print("Random Forest:", "Features:",optimal_for[1],"Accuracy:",optimal_for[0])
-        print("Naive Bays:", "Features:",optimal_bays[1],"Accuracy:",optimal_bays[0],"\n")
+        print("Decision Tree:","Accuracy:", -optimal_dec_result.fun,"Features:",int(optimal_dec_result.x[0]))
+        print("Logistic Regession:","Accuracy:",-optimal_reg_result.fun,"Features:",int(optimal_reg_result.x[0]))
+        print("Random Forest:", "Accuracy:",-optimal_for_result.fun,"Features:",int(optimal_for_result.x[0]))
+        print("Naive Bays:", "Accuracy:",-optimal_bays_result.fun,"Features:",int(optimal_bays_result.x[0]),"\n")
         
 
-        best_in_class.append([[optimal_dec[0], optimal_reg[0], optimal_for[0],optimal_bays[0]],
-                            [optimal_dec[1], optimal_reg[1], optimal_for[1], optimal_bays[1]]])
+        best_in_class.append([[-optimal_dec_result.fun, -optimal_reg_result.fun,
+                            -optimal_for_result.fun,-optimal_bays_result.fun],
+                            [int(optimal_dec_result.x[0]), int(optimal_reg_result.x[0]),
+                            int(optimal_for_result.x[0]), int(optimal_bays_result.x[0])]])
 
 
     # Classifier types used for outputs:
