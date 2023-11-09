@@ -35,7 +35,7 @@ The data file (mbti_1.csv) is a list of users personality types and a correspond
 
 ## Analysis.py
 
-[Click here to view the analysis.py program](transform.py)
+[Click here to view the analysis.py program](analysis.py)
 
 * The second python program (analysis.py) uses tf_matrix.csv to train a variety of model types to predict the correct personality option for each of the four personality pairs.
 
