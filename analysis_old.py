@@ -7,7 +7,6 @@ from threading import Thread
 
 from scipy.sparse import csr_matrix
 from scipy.optimize import fminbound
-from scipy.optimize import minimize
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
@@ -190,12 +189,9 @@ def main():
         # Need to see other function: https://chat.openai.com/c/a196a6cd-63d3-4d69-ad31-4daca46c9d25
         # 
 
-
+        
         i = 0
         gap_size = 8
-
-        start  = 0
-        end = 48
         print(item, "Classification:")
         while(i<6):           
             # The optimiztion function fminbound finds the best value between the bounds of the number of features ((i)*gap_size+1 to (i+1)*gap_size+1)...
