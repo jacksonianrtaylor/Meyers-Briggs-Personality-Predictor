@@ -23,7 +23,6 @@ NUM_USERS = 39
 SEED_INT = 5
 
 
-
 def load_data():
     """
     Load and return the data_by_type and data_by_type_full variables populated from "mbti_1.csv".
@@ -128,7 +127,7 @@ def populate_pairs(pair_types, pairs, key):
 
 def to_csv(file_name, word_occurances, word_bank, pair_types,  types): 
     """Output term frequencies and personality columns to tf_matrix.csv"""
-    # The intial columns are the word occorances.
+    # The intial columns are the word occurances.
     df = pd.DataFrame(data=word_occurances, columns=list(word_bank))  
     # These columns are the personailty pair columns.
     df["_I_E_"] = pair_types[0]

@@ -1,6 +1,14 @@
-# Goal:
+# Table of Contents:
 
-The goal of the project is to score an effective models accuracy at predicting a users myers briggs personality based on their last 50 posts on a site called personality cafe.
+1. [Project Goal](#project-goal)
+2. [Process](#process)
+3. [How to (Install/Run):](#how-to-installrun)
+
+
+
+# Project Goal:
+
+The goal of the project is to build an effective model that can predict a users myers briggs personality with relatively good accuraccy based on their last 50 posts on a site called personality cafe. An expanded version of this model also has potential to be useful with social media text data as a whole.
 
 
 ## About Meyers Briggs:
@@ -18,27 +26,26 @@ https://www.myersbriggs.org/my-mbti-personality-type/mbti-basics/
 
 https://www.kaggle.com/datasets/datasnaek/mbti-type
 
-The data file (mbti_1.csv) is a list of users personality types and a corresponding string of their 50 last posts from the personailty cafe forum. Each post is seperated by "|||".
+The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and a corresponding string of their 50 last posts from the personailty cafe forum. Each post is seperated by "|||".
 
 
 # Process: 
 
 ## Transform.py
-[Click here to view the transform.py program](transform.py)
+[Link to view the transform.py program](transform.py)
 
-- The text data of the 50 posts for each user is combined and converted into a sparse tf matrix of word/term frequencies with column names representing the entire set of words/terms found in at least one users posts.
+- The text data of the 50 posts for each user is combined and converted into a sparse term_frequency(tf) matrix of word/term frequencies with column names representing the entire set of words/terms found in at least one users posts.
 
-- The first python program in the project (transform.py) transforms the raw data from mbti_1.csv into this tf matrix.
+- The python program (transform.py) transforms the raw data from mbti_1.csv into this tf matrix.
 
-- This matrix along with some columns that represent the users personality type is saved in tf_matrix.csv.
+- This matrix along with some columns that represent the users personality type is saved in [tf_matrix.csv](tf_matrix.csv).
 
 
 ## Analysis.py
 
-[Click here to view the analysis.py program](analysis.py)
+[Link to view the analysis.py program](analysis.py)
 
-* The second python program (analysis.py) uses tf_matrix.csv to train a variety of model types to predict the correct personality option for each of the four personality pairs.
-
+* The second python program (analysis.py) uses the [tf_matrix.csv](tf_matrix.csv) to train a variety of model types to predict the correct personality option for each of the four personality pairs.
 
 * The 4 kinds of models trained and tested to predict each personailty pair are naive bays, logistic regression, decision tree, and random forest
 
@@ -52,15 +59,15 @@ The data file (mbti_1.csv) is a list of users personality types and a correspond
 
 * The best model of a specific type for a certain pair (1 out of 16) is found using optimization, meaning the correct number (or close to best number) of the most influencing features is found.
 
-* The fminbound function is what determines the best number of features within an certain integer bounds for a certain model type.
+* The differential_evolution function is what determines the best number of features within an certain integer bounds for a certain model type.
 
-* Multithreading is implemented with the fminbound function. Using the same bounds for the number of features, each model type is optimized for the best number of features between those bounds and each of these 4 functions are run together.
+* Multithreading is implemented with the differential_evolution function. Using the same bounds for the number of features, each model type is optimized for the best number of features between those bounds and each of these 4 functions are run together.
 
-* What "together" means in this context is that the program can complete the 4 fminbound tasks with partially concurrent execution, allowing usage of a higher percentage of the cpu and speeding up the overall process.
+* What "together" means in this context is that the program can complete the 4 differential_evolution tasks with partially concurrent execution, allowing usage of a higher percentage of the cpu and speeding up the overall process.
 
 
 * As state above, there are 16 models for each model type/personality combination
-and the best number of features of those 16 model types is found by testing many integer bounds with the fminbound functions.
+and the best number of features of those 16 model types is found by testing many integer bounds with the differential_evolution function.
 
 * Once the best 16 models have been found, it is time to apply their accuracies to estimate the accuracies of models that can predict the entire personality (all 4 pairs).
 
@@ -93,39 +100,10 @@ and the best number of features of those 16 model types is found by testing many
 
 - It also outputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model  out of 4 model types is used for each personality type. Again, the accuracy of the entire 4 pair predictions looks like this: (acc_1\*acc_2\*acc_3\*acc_4)
 
-
+- The outputs are also saved to [results.txt](results.txt)
 
 
 # How to install/run:
-
-## Automated Way (with docker):
-
-* Requirements:
-    * Git
-    * Docker
-
-
-1. Clone the repository with git.
-2. Navigate to the main project directory.
-3. Start the docker daemon.
-4. Build docker image using the provided Dockerfile using this shell command:
-
-    ```shell
-    docker build -t personality_guess_image .
-    ```
-
-5. Using the same shell, create a container from the image:
-
-    ```shell
-    docker run personality_guess_image 
-    ```
-
-6. Observe outputs from the console of the shell of the running container.
-
-
-
-
-## Manual Way (no docker):
 
 * Requirements:
     * Git
@@ -135,19 +113,10 @@ and the best number of features of those 16 model types is found by testing many
 
 2. With python3 and pip:
     1. Create a python virtual env in the main project directory. (my working python version: 3.10.7).
-    2. Install the following packages to the virtual env: scipy, scikit-learn, pandas, nltk, ordered_set
-    3. Activate the virtual environment
+    2. Activate the virtual environment
+    3. Install the following packages to the virtual env with pip: pandas, nltk, ordered-set, scipy, scikit-learn
 
 3. Run transform.py in the main project directory (and observe results in console).
 
 4. After completion of transform.py, Run analysis.py (and observe results in console).
 
-
-
-
-
-LOOK: Should there be estimation for the time to run?
-LOOK: What about short cuts for runing the program???
-LOOK: do u need to specify how to turn on docker???
-LOOK: should there be a mesasge to print to show the start of the
-program???

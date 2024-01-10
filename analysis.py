@@ -1,16 +1,9 @@
-
 import pandas as pd
 import time
-
-import random
+import copy
 from threading import Thread
-
 from scipy.sparse import csr_matrix
-from scipy.optimize import fminbound
-from scipy.optimize import minimize
-from scipy.optimize import dual_annealing
 from scipy.optimize import differential_evolution
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
@@ -90,11 +83,6 @@ class tests():
     that are selected with chi-squared feature selection.
     The input features are simply word counts.
     """
-    def __init__(self):
-        # This is used for consistent train test splits for a given runtime for all models.
-        # However, it has been replaced with a constant seed to produce similair consistency over runtimes.
-        # SEED_INT is used instead.
-        self.seed = random.randint(0, 42) 
 
     def preprocess(self, i,X, y):
         """Transform the data to be ready for a model:"""
@@ -119,13 +107,17 @@ class tests():
         # This also re-intitializes the data in the local scope. 
 
         #LOOK does this conversion work???
-        num_features = int(i[0])
-        X_copy = X.copy()
-        y_copy = y.copy()    
-        X_train,X_test,y_train,y_test = self.preprocess(num_features,X_copy, y_copy)   
+        #What about rounding up and down depending on threshhold??
+        num_features = round(i[0])
+
+        #LOOK: this is not a good enough copy...
+        # X_copy = X.copy()
+        # y_copy = y.copy()
+
+        X_train,X_test,y_train,y_test = self.preprocess(num_features, X, y)   
 
         # Model selector:
-        # The negation of the real accuracy is returned from test_features because the fminbound optimizer that uses this function...
+        # The negation of the real accuracy is returned from test_features because the differential_evolution optimizer that uses this function...
         # tries to find the minimum by default.
         # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
         if("dec_tree_model" == classifier_id):
@@ -156,25 +148,26 @@ def main():
     X = data[features]
     X = X.values
 
+    print(X)
+
     # convert to X csr matrix becuase the numpy array is sparse
     X = csr_matrix(X)
 
     classification_tests = tests()
 
 
-
     # The eventual shape of best_in_class is [4][2][4].
     # The first dimension is the personality pair being tested.
     # The seconds dimension is two lists.
-    # One is a list of accuracies scores for each model type,
-    # The other is the by index correspnding optimal number of features that produce the accuracy scores for each model type. 
 
+    # The first a list of accuracies scores for each model type.
+    # The second list is the corresponding optimal number of features for each model type. 
 
     # "best_in_class" is used to theoreticly compute the accuracy of any single classifer type predicting the full personality (4 types correctly)
-    # "best_in_class" is also used to theoreticlly compute the accuracy when the absolute best optmized classfier type...
+    # "best_in_class" is also used to theoreticlly compute the accuracy when the absolute best optimized classfier type...
     # is used to predict each personailty pair (4 types correctly)
-    best_in_class = []
 
+    best_in_class = []
 
     print("Training and testing with (39 X 16) = 624 users for each personality pair\n")
 
@@ -183,20 +176,23 @@ def main():
         # Target values of the current personality pair:
         y = list(data[item])
           
-        # The optimiztion function differential_evolution finds the best value between the bounds of the number of features that maximizes model perfrormance.
+
+        #LOOK: need to add random state to these functions...
+          
+        # The optimiztion function differential_evolution finds the best value between the bounds of the number of features that maximizes model performance.
         # Multithreading is used here for potential improvements in runtime.  
         t1 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" : [(1, 48)],
-                                 "args": ("dec_tree_model",X, y)})
+                                 "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y))})
         t2 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("log_reg_model",X, y)})
+                                 "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y))})
         t3 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("rand_forest_model",X, y)})
+                                 "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y))})
         t4 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("naive_bays_model",X, y)})
+                                 "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y))})
         t1.start()
         t2.start()
         t3.start()
