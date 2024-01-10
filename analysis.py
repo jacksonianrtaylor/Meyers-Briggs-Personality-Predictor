@@ -183,16 +183,16 @@ def main():
         # Multithreading is used here for potential improvements in runtime.  
         t1 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" : [(1, 48)],
-                                 "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y))})
+                                 "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t2 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y))})
+                                 "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t3 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y))})
+                                 "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t4 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y))})
+                                 "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t1.start()
         t2.start()
         t3.start()
