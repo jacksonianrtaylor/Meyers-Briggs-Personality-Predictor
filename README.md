@@ -8,13 +8,13 @@
 
 # Project Goal:
 
-The goal of the project is to build an effective model that can predict a users myers briggs personality with relatively good accuraccy based on their last 50 posts on a site called personality cafe. An expanded version of this model also has potential to be useful with social media text data as a whole.
+The goal of the project is to build an effective model that can predict a users Myers Briggs personality with relatively good accuraccy based on their last 50 posts on a site called personality cafe. An expanded version of this model also has potential to be useful with social media text data as a whole.
 
 
-## About Meyers Briggs:
+## About Myers Briggs:
 
-Meyers briggs is a personailty test that groups people into 1 of 16 personailties.
-There are four personalities pairs that make up the entire personailtity profile that which acording to meyers briggs, you can only be one or the other.
+Myers Briggs is a personailty test that groups people into 1 of 16 personailties.
+There are four personalities pairs that make up the entire personailtity profile that which acording to Myers Briggs, you can only be one or the other.
 Meaning that there are 2^4 = 16 possible personalities. 
 One can predict someones personality by combining all the predictions for the individual pairs.
 
@@ -34,7 +34,7 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 ## Transform.py
 [Link to view the transform.py program](transform.py)
 
-- The text data of the 50 posts for each user is combined and converted into a sparse term_frequency(tf) matrix of word/term frequencies with column names representing the entire set of words/terms found in at least one users posts.
+- The text data of the 50 posts for each user is combined and converted into a sparse term_frequency(tf) matrix of word/term frequencies with column names for the entire set of words/terms found in at least one users posts.
 
 - The python program (transform.py) transforms the raw data from mbti_1.csv into this tf matrix.
 
@@ -47,13 +47,13 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 
 * The second python program (analysis.py) uses the [tf_matrix.csv](tf_matrix.csv) to train a variety of model types to predict the correct personality option for each of the four personality pairs.
 
-* The 4 kinds of models trained and tested to predict each personailty pair are naive bays, logistic regression, decision tree, and random forest
+* The 4 kinds of models trained and tested to predict each personailty pair are naive bays, logistic regression, decision tree, and random forest.
 
-* Since there are 4 model types for each of the 4 personality pairs, there exists 16 models.
+* Since there are 4 model types that can be tuned for each of the 4 personality pairs, there exists 16 models.
 
-* However, this hasn't yet considered  a very sensitive parameter, number of features.
+* The variables that are tuned are the word/term features.
 
-* Too many features can overwelm a model and too little features is insuffient for model profiling and performance.
+* Too many features can overwelm a model and too little features is insuffient for model profiling and performance. 
 
 * Since the entire list of word/term frequencies for all documented words/terms for all users is alot of features for a model, the program uses an optimization technique to reduce the number of features to a more managable and optimal number.
 
@@ -66,8 +66,7 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 * What "together" means in this context is that the program can complete the 4 differential_evolution tasks with partially concurrent execution, allowing usage of a higher percentage of the cpu and speeding up the overall process.
 
 
-* As state above, there are 16 models for each model type/personality combination
-and the best number of features of those 16 model types is found by testing many integer bounds with the differential_evolution function.
+* As state above, there are 16 models corresponding to each model type/personality combination and the best number of features of those 16 model types is found by testing an integer bounds from (1-48) for the number of word/term freqeuncies with the differential_evolution function.
 
 * Once the best 16 models have been found, it is time to apply their accuracies to estimate the accuracies of models that can predict the entire personality (all 4 pairs).
 
@@ -87,7 +86,7 @@ and the best number of features of those 16 model types is found by testing many
 
     * With the stratify option, the 50/50 split for any given personality pair of the entire dataset, is maintained for the test users and train users meaning y_train and y_test both have an even split for each personality pair  
 
-- The implications of independence is that the accuracy score of the full myers briggs prediction (one out of 16) can be aproximated by multiplying the accuracy scores of a selected model for each pair. The operation looks like this: (acc_1\*acc_2\*acc_3\*acc_4)
+- The implications of independence is that the accuracy score of the full Myers Briggs prediction (one out of 16) can be aproximated by multiplying the accuracy scores of a selected model for each pair. The operation looks like this: (acc_1\*acc_2\*acc_3\*acc_4)
 
 - Besides enforcing independence, the even split of one personality vs the other for a personality pair is critical to build a model with no popularity bias.
 

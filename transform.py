@@ -19,14 +19,14 @@ nltk.download('wordnet')
 
 # The number of users for the least occuring personality type:
 NUM_USERS = 39
-# The number to seed in order to keep consistent runtimes:
+# Global random seed: 
 SEED_INT = 5
 
 
 def load_data():
     """
     Load and return the data_by_type and data_by_type_full variables populated from "mbti_1.csv".
-    "data_by_type_full" is a dictionary of personality string keys like "ENTJ" to a list of the corresposnding users of that personality type.
+    "data_by_type_full" is a dictionary of personality string keys like "ENTJ" to a list of the corresponding users of that personality type.
     Each user is a list of 50 posts.
     "data_by_type" is a dictionary of personality string keys like "ENTJ" to list of 39 random users of that type selected randomly from data_by_type_full
     Each user is a list of 50 posts.
@@ -52,7 +52,7 @@ def load_data():
 
 
 def tf_full(pairs, data_by_type):
-    """Create a list of users term frequencies and there coresponding personalities."""
+    """Create a list of users term frequencies and there corresponding personalities."""
     # This is used to set the consistent order of terms for a users word/term count vector (see "user_word_occurances" below).
     word_bank = OrderedSet()
     # For every user, a word count vector with the term order corresponding to the order of words in "word_bank".

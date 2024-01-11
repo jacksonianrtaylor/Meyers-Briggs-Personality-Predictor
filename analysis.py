@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 
-# Global random seed for consistent train test splits and randomstates for certain models:
+# Global random seed: 
 SEED_INT = 10
 
 
@@ -55,7 +55,8 @@ def rand_forest_model(X_train,X_test,y_train,y_test):
 
 def dec_tree_model(X_train,X_test,y_train,y_test):
     """The decision tree model implements cost complexity pruning."""
-    dec_tree = DecisionTreeClassifier(random_state = SEED_INT)
+    #LOOK: remove entropy if worse
+    dec_tree = DecisionTreeClassifier(criterion = "entropy", random_state = SEED_INT)
     path = dec_tree.cost_complexity_pruning_path(X_train, y_train)
     alphas = path['ccp_alphas']   
     max_score = 0
@@ -92,9 +93,9 @@ class tests():
 
         selector = SelectKBest(chi2, k=i)
         # Only train data is used to fit the selectKbest selector.
+        # This is to simulate a simple case of testing the model with new data that can not influence the selector.
         selector.fit(X_train, y_train)
         # However, the X_test data still makes use of it.
-        # This is to simulate a simple case of testing the model with new data that can not influence the selector.
         X_train = selector.transform(X_train)
         X_test = selector.transform(X_test)
 
@@ -102,17 +103,7 @@ class tests():
 
     def test_features(self,i, classifier_id, X, y ):
         """Train and test a model after preprocessing:"""
-        # https://blog.finxter.com/python-list-copy/
-        # Copy is atomic and rest of the variables are thread safe in the current namespace.
-        # This also re-intitializes the data in the local scope. 
-
-        #LOOK does this conversion work???
-        #What about rounding up and down depending on threshhold??
         num_features = round(i[0])
-
-        #LOOK: this is not a good enough copy...
-        # X_copy = X.copy()
-        # y_copy = y.copy()
 
         X_train,X_test,y_train,y_test = self.preprocess(num_features, X, y)   
 
@@ -148,8 +139,6 @@ def main():
     X = data[features]
     X = X.values
 
-    print(X)
-
     # convert to X csr matrix becuase the numpy array is sparse
     X = csr_matrix(X)
 
@@ -163,9 +152,9 @@ def main():
     # The first a list of accuracies scores for each model type.
     # The second list is the corresponding optimal number of features for each model type. 
 
-    # "best_in_class" is used to theoreticly compute the accuracy of any single classifer type predicting the full personality (4 types correctly)
+    # "best_in_class" is used to theoreticly compute the accuracy of any single classifer type predicting the full personality (4 types correctly).
     # "best_in_class" is also used to theoreticlly compute the accuracy when the absolute best optimized classfier type...
-    # is used to predict each personailty pair (4 types correctly)
+    # is used to predict each personailty pair (4 types correctly).
 
     best_in_class = []
 
@@ -176,11 +165,8 @@ def main():
         # Target values of the current personality pair:
         y = list(data[item])
           
-
-        #LOOK: need to add random state to these functions...
-          
-        # The optimiztion function differential_evolution finds the best value between the bounds of the number of features that maximizes model performance.
-        # Multithreading is used here for potential improvements in runtime.  
+        # The optimiztion function, differential_evolution, finds the best value between the bounds of the number of features that maximizes model performance.
+        # Multithreading is used here for some improvements in runtime.  
         t1 = return_thread(group=None,target=differential_evolution,
                         kwargs={"func" : classification_tests.test_features,"bounds" : [(1, 48)],
                                  "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})

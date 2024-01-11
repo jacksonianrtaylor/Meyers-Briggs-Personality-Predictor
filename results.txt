@@ -2,7 +2,7 @@ Complete Myers Briggs Prediction for individual Classifiers:
 
 Classifier: Decision Tree
 Accuracy: 0.41827968
-Pair: _I_E_ Features: 34 Pair: _N_S_ Features: 34 Pair: _T_F_ Features: 16 Pair: _J_P_ Features: 29 
+Pair: _I_E_ Features: 34 Pair: _N_S_ Features: 34 Pair: _T_F_ Features: 15 Pair: _J_P_ Features: 29 
 
 Classifier: Logistic Regression
 Accuracy: 0.4061952
