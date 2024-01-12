@@ -133,7 +133,10 @@ def main():
 
     # Features are all word/tokens that occur in at least one of the users posts (based on "word_bank" in the transfrom.py programm).
     features = list(data.keys())
-    features = features[:-5]
+
+    #LOOK: previously was [:-5] with last columns representing full personality
+    #Since that does nothing it should be removed.
+    features = features[:-4]
 
     # X is the tf matrix from tf_matrix.csv (not the personality data)
     X = data[features]
