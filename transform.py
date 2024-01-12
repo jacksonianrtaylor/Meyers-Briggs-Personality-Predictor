@@ -101,6 +101,9 @@ def to_csv(file_name, word_occurances, terms, pair_types):
     f.close()    
 
 
+#LOOK: need to try using just basic document frequency instead of tf-idf in both projects
+#LOOk: potential issue with this code is the wrong kind of lematization is used
+
 def main():
     time_t = time.time()
 
