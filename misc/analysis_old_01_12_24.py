@@ -111,20 +111,14 @@ class tests():
     # LOOK: implement cross-validation
 
     # 624 users (574 train, 50 test):
-    # This can be repeated up to 12.48 -> 12 times with non-overlapping test sets
+    # This can be reapeted up to 12.48 -> 12 times with non-overlapping test sets
 
     # idea queue:
 
-    # Question: Where does the feature selector go?
-
-    # step 0: Train a feature selector
-    # then, use the feature selector to reduce the features for all X.
-
-    # this is already done...
-
+    # step 0: ???
     # step 1: shuffle the users (features and personalities as pairs)
     # step 2: split into groups like above
-    # step 3: run the model on each group and return the average.
+    # step 3: run the model on each groups and returen the average.
 
 
     def test_features(self,i, classifier_id, X, y ):

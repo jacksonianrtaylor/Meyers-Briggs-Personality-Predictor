@@ -152,3 +152,7 @@ cython_debug/
 #.idea/
 
 #non-default omissions:
+
+trash.ipynb
+trash.py
+

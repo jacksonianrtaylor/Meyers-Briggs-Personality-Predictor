@@ -2,23 +2,23 @@ Complete Myers Briggs Prediction for individual Classifiers:
 
 Classifier: Decision Tree
 Accuracy: 0.37632
-Pair: _I_E_ Features: 40 Pair: _N_S_ Features: 7 Pair: _T_F_ Features: 9 Pair: _J_P_ Features: 40 
+Pair: _I_E_ Features: 40 Pair: _N_S_ Features: 7 Pair: _T_F_ Features: 10 Pair: _J_P_ Features: 29 
 
 Classifier: Logistic Regression
 Accuracy: 0.40832063999999996
-Pair: _I_E_ Features: 36 Pair: _N_S_ Features: 27 Pair: _T_F_ Features: 12 Pair: _J_P_ Features: 43 
+Pair: _I_E_ Features: 47 Pair: _N_S_ Features: 27 Pair: _T_F_ Features: 18 Pair: _J_P_ Features: 40 
 
 Classifier: Random Forest
-Accuracy: 0.35903616
-Pair: _I_E_ Features: 37 Pair: _N_S_ Features: 36 Pair: _T_F_ Features: 47 Pair: _J_P_ Features: 34 
+Accuracy: 0.35048767999999997
+Pair: _I_E_ Features: 10 Pair: _N_S_ Features: 35 Pair: _T_F_ Features: 36 Pair: _J_P_ Features: 17 
 
 Classifier: Naive Bays
 Accuracy: 0.47444543999999994
-Pair: _I_E_ Features: 31 Pair: _N_S_ Features: 44 Pair: _T_F_ Features: 42 Pair: _J_P_ Features: 37 
+Pair: _I_E_ Features: 40 Pair: _N_S_ Features: 45 Pair: _T_F_ Features: 41 Pair: _J_P_ Features: 35 
 
 Myers Briggs Prediction from the best of each Classifier:
 Best model accuracy: 0.4860172799999999
 Pair: _I_E_ Classifier: Decision Tree Number of features: 40
-Pair: _N_S_ Classifier: Naive Bays Number of features: 44
-Pair: _T_F_ Classifier: Naive Bays Number of features: 42
-Pair: _J_P_ Classifier: Logistic Regression Number of features: 43
+Pair: _N_S_ Classifier: Naive Bays Number of features: 45
+Pair: _T_F_ Classifier: Naive Bays Number of features: 41
+Pair: _J_P_ Classifier: Logistic Regression Number of features: 40
