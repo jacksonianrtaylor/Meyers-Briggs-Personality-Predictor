@@ -132,19 +132,49 @@ class tests():
         num_features = round(i[0])
 
         X_train,X_test,y_train,y_test = self.preprocess(num_features, X, y)   
+        #Note: data is already shuffled with preprocess...
+
+
+        #LOOK: this does not work on a sparse matrix!!!
+
+        # print(type(X_train))
+        # print(type(X_test))
+        # print(type(y_train))
+        # print(type(y_test))
+
+
+        X_new = X_train.toarray().tolist() + X_test.toarray().tolist()
+        y_new = y_train+y_test
 
         # Model selector:
         # The negation of the real accuracy is returned from test_features because the differential_evolution optimizer that uses this function...
         # tries to find the minimum by default.
         # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
-        if("dec_tree_model" == classifier_id):
-            return -dec_tree_model(X_train,X_test,y_train,y_test)
-        if("log_reg_model" == classifier_id):
-            return -log_reg_model(X_train,X_test,y_train,y_test)
-        if("rand_forest_model" == classifier_id):
-            return -rand_forest_model(X_train,X_test,y_train,y_test)      
-        if("naive_bays_model" == classifier_id):
-            return -naive_bays_model(X_train,X_test,y_train,y_test)
+        acc_sum = 0
+        # for i in range(5):
+        #     X_test = X_new[50*i:50*(i+1)]
+        #     y_test = y_new[50*i:50*(i+1)]
+        #     if(i==0):
+        #         X_train = X_new[50*(i+1):]
+        #         y_train = y_new[50*(i+1):]
+        #     else: 
+        #         X_train = X_new[:50*i] + X_new[50*(i+1):]
+        #         y_train = y_new[:50*i] + y_new[50*(i+1):]
+
+        #     if("dec_tree_model" == classifier_id):
+        #         acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
+        #     if("log_reg_model" == classifier_id):
+        #         acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
+        #     if("rand_forest_model" == classifier_id):
+        #         acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
+        #     if("naive_bays_model" == classifier_id):
+        #         acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
+
+
+
+        return acc_sum/5
+        
+
         
 
 
