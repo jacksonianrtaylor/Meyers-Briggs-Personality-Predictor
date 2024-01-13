@@ -10,7 +10,6 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from ordered_set import OrderedSet
 
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Downloads needed to work locally:
 nltk.download('punkt')
@@ -18,11 +17,18 @@ nltk.download('words')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+
+
 # The number of users for the least occuring personality type:
 NUM_USERS = 39
+
 # Global random seed: 
 SEED_INT = 5
 
+
+wnl = WordNetLemmatizer()
 
 def load_data():
     """
@@ -39,6 +45,12 @@ def load_data():
     data = csv.reader(f)
     # next(data) cuts the first row which are column labels
     next(data)
+
+    #LOOK: This is slightly inefficient!!!
+    # becasue the operation happens on the entire list of users, but only a small amount of those users are chosen
+    # need to know how to lemmatize a string 
+    # if this does not contribue much to runtime it is ok to leave as is as to not overcomplicate things
+
     data_by_type_full = dict()
     for row in data:   
         if ((row[0] not in data_by_type_full.keys())):
@@ -68,17 +80,29 @@ def tf_full(pairs, data_by_type):
     pair_types = [[],[],[],[]]
 
     for key in data_by_type.keys():
-        for _ in data_by_type[key]:
+        for user in data_by_type[key]:
             for pair, char, index in zip(pairs, key, range(4)):
                 if char == pair[0]:
                     pair_types[index].append(1)
                 else:
                     pair_types[index].append(0)
-        
+    
+            user_tokens = word_tokenize(user)
+            user_tokens = [wnl.lemmatize(token.lower()) 
+                           for token in user_tokens if token.isalpha() 
+                           and wnl.lemmatize(token.lower()) not in stopwords.words('english')]
+            
+            corpus_list.append(' '.join(user_tokens))
 
-        corpus_list.extend(data_by_type[key])
+        # LOOK: This is part of the faster lematization method
+        # corpus_list.extend(data_by_type[key])
 
-    vectorizer = TfidfVectorizer(lowercase = True, stop_words = "english")
+    # LOOK: This is part of the faster lematization method
+    # vectorizer = CountVectorizer(lowercase = True, stop_words = "english")
+            
+
+    vectorizer = TfidfVectorizer()
+    # vectorizer = CountVectorizer()
     document_term_matrix = vectorizer.fit_transform(corpus_list)
     terms = vectorizer.get_feature_names_out()
 
