@@ -1,7 +1,6 @@
 import pandas as pd
 import time
 import copy
-import random
 from threading import Thread
 from scipy.sparse import csr_matrix
 from scipy.optimize import differential_evolution
@@ -92,10 +91,11 @@ class tests():
     The input features are simply word counts.
     """
 
-    def preprocess(self, i, X_train,X_test,y_train,y_test):
+    def preprocess(self, i,X, y):
         """Transform the data to be ready for a model:"""
         #  Stratify makes sure the same proportions of target values in the full dataset is preseved in the train and test data 
         #  Both the y_train and y_test are split 50/50 between any given pair.
+        X_train,X_test,y_train,y_test = train_test_split(X,  y, test_size = 50, random_state = SEED_INT, stratify=y)
 
         selector = SelectKBest(chi2, k=i)
         # Only train data is used to fit the selectKbest selector.
@@ -135,30 +135,19 @@ class tests():
     # for the best given number of features.
 
 
-    def test_features(self,i, classifier_id, X, y):
+    def test_features(self,i, classifier_id, X, y ):
         """Train and test a model after preprocessing:"""
         num_features = round(i[0])
 
-        # X_train,X_test,y_train,y_test = self.preprocess(num_features, X, y)   
+        X_train,X_test,y_train,y_test = self.preprocess(num_features, X, y)   
         #Note: data is already shuffled with preprocess...
 
         #LOOK: There is a method in which fold the of features are selected again acording to the data at hand
         #but I hope the methods present is enough to suffice
 
 
-        X_new = X.toarray().tolist()
-        y_new = y
-
-        temp = list(zip(X_new, y_new))
-        random.shuffle(temp)
-        X_new, y_new = zip(*temp)
-
-        # idea: split the data by the target value 
-        # shuffle list of pairs for one type of target values
-        # shuffle list of pairs for other type of target values
-        # select 25 from each list 
-        # ....
-
+        X_new = X_train.toarray().tolist() + X_test.toarray().tolist()
+        y_new = y_train+y_test
 
         # Model selector:
         # The negation of the real accuracy is returned from test_features because the differential_evolution optimizer that uses this function...
@@ -166,8 +155,6 @@ class tests():
         # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
         acc_sum = 0
         for i in range(5):
-
-
             X_test = X_new[50*i:50*(i+1)]
             y_test = y_new[50*i:50*(i+1)]
             if(i==0):
@@ -176,10 +163,6 @@ class tests():
             else: 
                 X_train = X_new[:50*i] + X_new[50*(i+1):]
                 y_train = y_new[:50*i] + y_new[50*(i+1):]
-
-            #LOOK: need to statify the users: same numebr of each personality is in train and test 
-
-            X_train,X_test,y_train,y_test = self.preprocess(num_features,X_train,X_test,y_train,y_test)
 
             if("dec_tree_model" == classifier_id):
                 acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
