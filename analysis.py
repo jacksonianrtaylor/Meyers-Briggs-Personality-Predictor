@@ -20,9 +20,9 @@ from sklearn.metrics import accuracy_score
 # SEED_INT = 5 (.428)
 # SEED_INT = 15 (0.408)
 # SEED_INT = 20 (0.486)
-# LOOK: need to use k-means, (this could mean trimming  the bounds of the optimization function)
 
-SEED_INT = 20 
+
+SEED_INT = 10
 
 class return_thread(Thread):
     """Thread class that returns a value with join:"""
@@ -127,6 +127,14 @@ class tests():
     # step 3: run the model on each group and return the average.
 
 
+    # LOOK: If applying the trained model after training process on a single data point,...
+    # then you need to use feature selection on this test data that same way it is used in the training
+    # The problem is that chi-squred feature selection requires more than one test user to implement
+    # If the exact feature were known then those feature could simply be chosen, but they differ between folds.
+    # However, if large batch was tested instead of a single user, then the same feature selection process can be applied...
+    # for the best given number of features.
+
+
     def test_features(self,i, classifier_id, X, y ):
         """Train and test a model after preprocessing:"""
         num_features = round(i[0])
@@ -134,13 +142,8 @@ class tests():
         X_train,X_test,y_train,y_test = self.preprocess(num_features, X, y)   
         #Note: data is already shuffled with preprocess...
 
-
-        #LOOK: this does not work on a sparse matrix!!!
-
-        # print(type(X_train))
-        # print(type(X_test))
-        # print(type(y_train))
-        # print(type(y_test))
+        #LOOK: There is a method in which fold the of features are selected again acording to the data at hand
+        #but I hope the methods present is enough to suffice
 
 
         X_new = X_train.toarray().tolist() + X_test.toarray().tolist()
@@ -151,25 +154,24 @@ class tests():
         # tries to find the minimum by default.
         # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
         acc_sum = 0
-        # for i in range(5):
-        #     X_test = X_new[50*i:50*(i+1)]
-        #     y_test = y_new[50*i:50*(i+1)]
-        #     if(i==0):
-        #         X_train = X_new[50*(i+1):]
-        #         y_train = y_new[50*(i+1):]
-        #     else: 
-        #         X_train = X_new[:50*i] + X_new[50*(i+1):]
-        #         y_train = y_new[:50*i] + y_new[50*(i+1):]
+        for i in range(5):
+            X_test = X_new[50*i:50*(i+1)]
+            y_test = y_new[50*i:50*(i+1)]
+            if(i==0):
+                X_train = X_new[50*(i+1):]
+                y_train = y_new[50*(i+1):]
+            else: 
+                X_train = X_new[:50*i] + X_new[50*(i+1):]
+                y_train = y_new[:50*i] + y_new[50*(i+1):]
 
-        #     if("dec_tree_model" == classifier_id):
-        #         acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
-        #     if("log_reg_model" == classifier_id):
-        #         acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
-        #     if("rand_forest_model" == classifier_id):
-        #         acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
-        #     if("naive_bays_model" == classifier_id):
-        #         acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
-
+            if("dec_tree_model" == classifier_id):
+                acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
+            if("log_reg_model" == classifier_id):
+                acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
+            if("rand_forest_model" == classifier_id):
+                acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
+            if("naive_bays_model" == classifier_id):
+                acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
 
 
         return acc_sum/5
@@ -190,8 +192,6 @@ def main():
     # Features are all word/tokens that occur in at least one of the users posts (based on "word_bank" in the transfrom.py programm).
     features = list(data.keys())
 
-    #LOOK: previously was [:-5] with last columns representing full personality
-    #Since that does nothing it should be removed.
     features = features[:-4]
 
     # X is the tf matrix from tf_matrix.csv (not the personality data)
@@ -229,31 +229,31 @@ def main():
 
         #LOOK: try multiples runs without seeding the optimizer  
         #does
-        # t1 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" : [(1, 48)],
-        #                          "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
-        # t2 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-        #                          "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
-        # t3 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-        #                          "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
-        # t4 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-        #                          "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
-        
         t1 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" : [(1, 48)],
-                                 "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y))})
+                        kwargs={"func" : classification_tests.test_features,"bounds" : [(30,50)],
+                                 "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t2 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y))})
+                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+                                 "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t3 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y))})
+                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+                                 "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t4 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(1, 48)],
-                                 "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y))})
+                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+                                 "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
+        
+        # t1 = return_thread(group=None,target=differential_evolution,
+        #                 kwargs={"func" : classification_tests.test_features,"bounds" : [(30,50)],
+        #                          "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y))})
+        # t2 = return_thread(group=None,target=differential_evolution,
+        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+        #                          "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y))})
+        # t3 = return_thread(group=None,target=differential_evolution,
+        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+        #                          "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y))})
+        # t4 = return_thread(group=None,target=differential_evolution,
+        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+        #                          "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y))})
         t1.start()
         t2.start()
         t3.start()
