@@ -85,27 +85,22 @@ def fit_tree(X_train,X_test,y_train,y_test, alpha):
    
 
 
-class tests():   
-    """
-    This is what is used to test the accuracy of models for varied number of feature inputs...
-    that are selected with chi-squared feature selection.
-    The input features are simply word counts.
-    """
 
-    def preprocess(self, i, X_train,X_test,y_train,y_test):
-        """Transform the data to be ready for a model:"""
-        #  Stratify makes sure the same proportions of target values in the full dataset is preseved in the train and test data 
-        #  Both the y_train and y_test are split 50/50 between any given pair.
 
-        selector = SelectKBest(chi2, k=i)
-        # Only train data is used to fit the selectKbest selector.
-        # This is to simulate a simple case of testing the model with new data that can not influence the selector.
-        selector.fit(X_train, y_train)
-        # However, the X_test data still makes use of it.
-        X_train = selector.transform(X_train)
-        X_test = selector.transform(X_test)
+def preprocess(i, X_train,X_test,y_train,y_test):
+    """Transform the data to be ready for a model:"""
+    #  Stratify makes sure the same proportions of target values in the full dataset is preseved in the train and test data 
+    #  Both the y_train and y_test are split 50/50 between any given pair.
 
-        return X_train,X_test,y_train,y_test
+    selector = SelectKBest(chi2, k=i)
+    # Only train data is used to fit the selectKbest selector.
+    # This is to simulate a simple case of testing the model with new data that can not influence the selector.
+    selector.fit(X_train, y_train)
+    # However, the X_test data still makes use of it.
+    X_train = selector.transform(X_train)
+    X_test = selector.transform(X_test)
+
+    return X_train,X_test,y_train,y_test
 
 
     # LOOK: implement cross-validation
@@ -135,64 +130,63 @@ class tests():
     # for the best given number of features.
 
 
-    def test_features(self,i, classifier_id, X, y):
-        """Train and test a model after preprocessing:"""
-        num_features = round(i[0])
-
-        # X_train,X_test,y_train,y_test = self.preprocess(num_features, X, y)   
-        #Note: data is already shuffled with preprocess...
-
-        #LOOK: There is a method in which fold the of features are selected again acording to the data at hand
-        #but I hope the methods present is enough to suffice
+def test_features(i, classifier_id, X, y):
+    """Train and test a model after preprocessing:"""
+    num_features = round(i[0])
 
 
-        X_new = X.toarray().tolist()
-        y_new = y
+    #LOOK: There is a method in which fold the of features are selected again acording to the data at hand
+    #but I hope the methods present is enough to suffice
 
-        temp = list(zip(X_new, y_new))
-        random.shuffle(temp)
-        X_new, y_new = zip(*temp)
 
-        # idea: split the data by the target value 
-        # shuffle list of pairs for one type of target values
-        # shuffle list of pairs for other type of target values
-        # select 25 from each list 
-        # ....
+    X_new = X.toarray().tolist()
+    y_new = y
 
+    temp = list(zip(X_new, y_new))
+    random.shuffle(temp)
+    temp = sorted(temp, key = lambda item: item[1])
+    X_new, y_new = zip(*temp)
+    X_new = list(X_new)
+    y_new = list(y_new)
+
+    # now X_new, y_new are sorted by target value but the order of those are still random...
+
+
+
+    # select 25 from each list to be test users
+    # ....
+    #halfway point: 624/2 = 312
+
+    acc_sum = 0
+    for j in range(1):
+        X_test = X_new[25*j:25*(j+1)] + X_new[312+25*j:312+25*(j+1)]
+        y_test = y_new[25*j:25*(j+1)] + y_new[312+25*j:312+25*(j+1)]
+
+        X_train = X_new[:25*j] + X_new[25*(j+1):312] + X_new[312:312+25*j] + X_new[312+25*(j+1):]
+        y_train = y_new[:25*j] + y_new[25*(j+1):312] + y_new[312:312+25*j] + y_new[312+25*(j+1):]
+
+
+        #LOOK: Need to convert arrays into csr matrices before passing....
+        #otherwise, this takes a very long time
+
+        X_train,X_test,y_train,y_test = preprocess(num_features,copy.deepcopy(X_train),copy.deepcopy(X_test),copy.deepcopy(y_train),copy.deepcopy(y_test))
 
         # Model selector:
         # The negation of the real accuracy is returned from test_features because the differential_evolution optimizer that uses this function...
         # tries to find the minimum by default.
         # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
-        acc_sum = 0
-        for i in range(5):
+        if("dec_tree_model" == classifier_id):
+            acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
+        if("log_reg_model" == classifier_id):
+            acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
+        if("rand_forest_model" == classifier_id):
+            acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
+        if("naive_bays_model" == classifier_id):
+            acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
 
 
-            X_test = X_new[50*i:50*(i+1)]
-            y_test = y_new[50*i:50*(i+1)]
-            if(i==0):
-                X_train = X_new[50*(i+1):]
-                y_train = y_new[50*(i+1):]
-            else: 
-                X_train = X_new[:50*i] + X_new[50*(i+1):]
-                y_train = y_new[:50*i] + y_new[50*(i+1):]
+    return acc_sum
 
-            #LOOK: need to statify the users: same numebr of each personality is in train and test 
-
-            X_train,X_test,y_train,y_test = self.preprocess(num_features,X_train,X_test,y_train,y_test)
-
-            if("dec_tree_model" == classifier_id):
-                acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
-            if("log_reg_model" == classifier_id):
-                acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
-            if("rand_forest_model" == classifier_id):
-                acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
-            if("naive_bays_model" == classifier_id):
-                acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
-
-
-        return acc_sum/5
-        
 
         
 
@@ -218,8 +212,7 @@ def main():
     # convert to X csr matrix becuase the numpy array is sparse
     X = csr_matrix(X)
 
-    classification_tests = tests()
-
+ 
 
     # The eventual shape of best_in_class is [4][2][4].
     # The first dimension is the personality pair being tested.
@@ -247,16 +240,16 @@ def main():
         #LOOK: try multiples runs without seeding the optimizer  
         #does
         t1 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" : [(30,50)],
+                        kwargs={"func" : test_features,"bounds" : [(50,50)],
                                  "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t2 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+                        kwargs={"func" : test_features,"bounds" :  [(50,50)],
                                  "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t3 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+                        kwargs={"func" : test_features,"bounds" :  [(50,50)],
                                  "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         t4 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
+                        kwargs={"func" : test_features,"bounds" :  [(50,50)],
                                  "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
         
         # t1 = return_thread(group=None,target=differential_evolution,
