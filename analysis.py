@@ -2,7 +2,6 @@ import pandas as pd
 import time
 import copy
 import random
-from threading import Thread
 from scipy.sparse import csr_matrix
 from scipy.optimize import differential_evolution
 from sklearn.ensemble import RandomForestClassifier
@@ -14,6 +13,8 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+# from threading import Thread
+import multiprocessing
 
 # Global random seed: 
 # Original:
@@ -25,19 +26,19 @@ from sklearn.metrics import accuracy_score
 
 SEED_INT = 10
 
-class return_thread(Thread):
-    """Thread class that returns a value with join:"""
-    def __init__(self, group=None, target=None, name=None,
-                 args=(), kwargs={}, Verbose=None):
-        Thread.__init__(self, group, target, name, args, kwargs)
-        self._return = None
-    def run(self):
-        if self._target is not None:
-            self._return = self._target(*self._args,
-                                                **self._kwargs)
-    def join(self, *args):
-        Thread.join(self, *args)
-        return self._return
+# class return_thread(Thread):
+#     """Thread class that returns a value with join:"""
+#     def __init__(self, group=None, target=None, name=None,
+#                  args=(), kwargs={}, Verbose=None):
+#         Thread.__init__(self, group, target, name, args, kwargs)
+#         self._return = None
+#     def run(self):
+#         if self._target is not None:
+#             self._return = self._target(*self._args,
+#                                                 **self._kwargs)
+#     def join(self, *args):
+#         Thread.join(self, *args)
+#         return self._return
 
 # Classification models:
 # They all return accuracy scores (the number of correct predictions divided by the number of predictions).
@@ -130,8 +131,10 @@ def preprocess(i, X_train,X_test,y_train,y_test):
     # for the best given number of features.
 
 
-def test_features(i, classifier_id, X, y):
+def test_features(i, classifier_id, X, y,return_dict,val):
     """Train and test a model after preprocessing:"""
+
+    return_dict[val] = val
     num_features = round(i[0])
 
 
@@ -158,31 +161,35 @@ def test_features(i, classifier_id, X, y):
     #halfway point: 624/2 = 312
 
     acc_sum = 0
-    for j in range(1):
-        X_test = X_new[25*j:25*(j+1)] + X_new[312+25*j:312+25*(j+1)]
-        y_test = y_new[25*j:25*(j+1)] + y_new[312+25*j:312+25*(j+1)]
+    # for j in range(1):
+    #     X_test = X_new[25*j:25*(j+1)] + X_new[312+25*j:312+25*(j+1)]
+    #     y_test = y_new[25*j:25*(j+1)] + y_new[312+25*j:312+25*(j+1)]
 
-        X_train = X_new[:25*j] + X_new[25*(j+1):312] + X_new[312:312+25*j] + X_new[312+25*(j+1):]
-        y_train = y_new[:25*j] + y_new[25*(j+1):312] + y_new[312:312+25*j] + y_new[312+25*(j+1):]
+    #     X_train = X_new[:25*j] + X_new[25*(j+1):312] + X_new[312:312+25*j] + X_new[312+25*(j+1):]
+    #     y_train = y_new[:25*j] + y_new[25*(j+1):312] + y_new[312:312+25*j] + y_new[312+25*(j+1):]
 
 
-        #LOOK: Need to convert arrays into csr matrices before passing....
-        #otherwise, this takes a very long time
+    #     #LOOK: Need to convert arrays into csr matrices before passing....
+    #     #otherwise, this takes a very long time
+    #     X_train = csr_matrix(copy.deepcopy(X_train))
+    #     X_test = csr_matrix(copy.deepcopy(X_test))
+    #     y_train = copy.deepcopy(y_train)
+    #     y_test = copy.deepcopy(y_test)
 
-        X_train,X_test,y_train,y_test = preprocess(num_features,copy.deepcopy(X_train),copy.deepcopy(X_test),copy.deepcopy(y_train),copy.deepcopy(y_test))
+    #     X_train,X_test,y_train,y_test = preprocess(num_features,X_train,X_test,y_train,y_test)
 
-        # Model selector:
-        # The negation of the real accuracy is returned from test_features because the differential_evolution optimizer that uses this function...
-        # tries to find the minimum by default.
-        # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
-        if("dec_tree_model" == classifier_id):
-            acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
-        if("log_reg_model" == classifier_id):
-            acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
-        if("rand_forest_model" == classifier_id):
-            acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
-        if("naive_bays_model" == classifier_id):
-            acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
+    #     # Model selector:
+    #     # The negation of the real accuracy is returned from test_features because the differential_evolution optimizer that uses this function...
+    #     # tries to find the minimum by default.
+    #     # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
+    #     if("dec_tree_model" == classifier_id):
+    #         acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
+    #     if("log_reg_model" == classifier_id):
+    #         acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
+    #     if("rand_forest_model" == classifier_id):
+    #         acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
+    #     if("naive_bays_model" == classifier_id):
+    #         acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
 
 
     return acc_sum
@@ -239,18 +246,17 @@ def main():
 
         #LOOK: try multiples runs without seeding the optimizer  
         #does
-        t1 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : test_features,"bounds" : [(50,50)],
-                                 "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
-        t2 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : test_features,"bounds" :  [(50,50)],
-                                 "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
-        t3 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : test_features,"bounds" :  [(50,50)],
-                                 "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
-        t4 = return_thread(group=None,target=differential_evolution,
-                        kwargs={"func" : test_features,"bounds" :  [(50,50)],
-                                 "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y)), "seed": SEED_INT})
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+
+        t1 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(50,50)], "args" : ("dec_tree_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 0), "seed" : SEED_INT})
+
+        t2 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(50,50)], "args" : ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 1), "seed" : SEED_INT})
+
+        t3 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(50,50)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 2), "seed" : SEED_INT})
+
+        t4 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(50,50)], "args" : ("naive_bays_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 3), "seed" : SEED_INT})
+
         
         # t1 = return_thread(group=None,target=differential_evolution,
         #                 kwargs={"func" : classification_tests.test_features,"bounds" : [(30,50)],
@@ -273,89 +279,91 @@ def main():
         optimal_reg_result = t2.join()
         optimal_for_result = t3.join()
         optimal_bays_result = t4.join()   
-            
 
-        # Print the accuracy and the number of features for the best of each classifier for the given pair.
-        print(item, "Classification:")
-        print("Best Predictor Function Scores:")
-        print("Decision Tree:","Accuracy:", -optimal_dec_result.fun,"Features:",int(optimal_dec_result.x[0]))
-        print("Logistic Regession:","Accuracy:",-optimal_reg_result.fun,"Features:",int(optimal_reg_result.x[0]))
-        print("Random Forest:", "Accuracy:",-optimal_for_result.fun,"Features:",int(optimal_for_result.x[0]))
-        print("Naive Bays:", "Accuracy:",-optimal_bays_result.fun,"Features:",int(optimal_bays_result.x[0]),"\n")
+        print(return_dict.values())
+            
+#LOOK: this whole part is commented out for testing
+#         # Print the accuracy and the number of features for the best of each classifier for the given pair.
+#         print(item, "Classification:")
+#         print("Best Predictor Function Scores:")
+#         print("Decision Tree:","Accuracy:", -optimal_dec_result.fun,"Features:",int(optimal_dec_result.x[0]))
+#         print("Logistic Regession:","Accuracy:",-optimal_reg_result.fun,"Features:",int(optimal_reg_result.x[0]))
+#         print("Random Forest:", "Accuracy:",-optimal_for_result.fun,"Features:",int(optimal_for_result.x[0]))
+#         print("Naive Bays:", "Accuracy:",-optimal_bays_result.fun,"Features:",int(optimal_bays_result.x[0]),"\n")
         
 
-        best_in_class.append([[-optimal_dec_result.fun, -optimal_reg_result.fun,
-                            -optimal_for_result.fun,-optimal_bays_result.fun],
-                            [int(optimal_dec_result.x[0]), int(optimal_reg_result.x[0]),
-                            int(optimal_for_result.x[0]), int(optimal_bays_result.x[0])]])
+#         best_in_class.append([[-optimal_dec_result.fun, -optimal_reg_result.fun,
+#                             -optimal_for_result.fun,-optimal_bays_result.fun],
+#                             [int(optimal_dec_result.x[0]), int(optimal_reg_result.x[0]),
+#                             int(optimal_for_result.x[0]), int(optimal_bays_result.x[0])]])
 
 
-    # Classifier types used for outputs:
-    classifiers = ["Decision Tree", "Logistic Regression", "Random Forest", "Naive Bays"]
+#     # Classifier types used for outputs:
+#     classifiers = ["Decision Tree", "Logistic Regression", "Random Forest", "Naive Bays"]
 
-    print("Complete Myers Briggs Prediction for individual Classifiers:\n")
+#     print("Complete Myers Briggs Prediction for individual Classifiers:\n")
 
-    f = open("results.txt","w")
+#     f = open("results.txt","w")
 
-    f.write("Complete Myers Briggs Prediction for individual Classifiers:")
-    f.write("\n\n")
+#     f.write("Complete Myers Briggs Prediction for individual Classifiers:")
+#     f.write("\n\n")
 
-    # Find the best models that uses the same classifer type for each personality pair and output results.
-    for i in range (0,4):
-        pair_wise_features = ""
-        model_accuracy =1
-        j = 0
-        for pair in best_in_class:
-            model_accuracy*= pair[0][i]
-            pair_wise_features+= "Pair: "+pairs[j]+" Features: "+str(pair[1][i])+" "
-            j+=1
+#     # Find the best models that uses the same classifer type for each personality pair and output results.
+#     for i in range (0,4):
+#         pair_wise_features = ""
+#         model_accuracy =1
+#         j = 0
+#         for pair in best_in_class:
+#             model_accuracy*= pair[0][i]
+#             pair_wise_features+= "Pair: "+pairs[j]+" Features: "+str(pair[1][i])+" "
+#             j+=1
             
-        print("Classifier:", classifiers[i])
-        print("Accuracy:",str(model_accuracy))
-        print(pair_wise_features,"\n")
-        f.write("Classifier: "+classifiers[i])
-        f.write("\n")
-        f.write("Accuracy: "+str(model_accuracy))
-        f.write("\n")
-        f.write(pair_wise_features)
-        f.write("\n\n")
+#         print("Classifier:", classifiers[i])
+#         print("Accuracy:",str(model_accuracy))
+#         print(pair_wise_features,"\n")
+#         f.write("Classifier: "+classifiers[i])
+#         f.write("\n")
+#         f.write("Accuracy: "+str(model_accuracy))
+#         f.write("\n")
+#         f.write(pair_wise_features)
+#         f.write("\n\n")
 
 
 
-    # Find the absolute best model:
-    best_classifer_and_nof_features_per_personailty_pair = []
-    best_model_accuracy  = 1
+#     # Find the absolute best model:
+#     best_classifer_and_nof_features_per_personailty_pair = []
+#     best_model_accuracy  = 1
 
-    i = 0
-    for pair in best_in_class:
-        classifier_acc_nof_features = list(zip(classifiers, pair[0], pair[1]))
-        classifier_max_acc_nof_features = max(classifier_acc_nof_features, key = (lambda x: x[1]))
-        best_model_accuracy*= classifier_max_acc_nof_features[1]
-        best_classifer_and_nof_features_per_personailty_pair.append("Pair: "+str(pairs[i])+\
-                                                                    " Classifier: " +str(classifier_max_acc_nof_features[0])+\
-                                                                    " Number of features: "+str(classifier_max_acc_nof_features[2]))
-        i+=1
-
-
-    # Print and output the best model accuracy and the top models for each personality pair.
-    f.write("Myers Briggs Prediction from the best of each Classifier:")
-    f.write("\n")
-    f.write("Best model accuracy: " + str(best_model_accuracy))
-    f.write("\n")
-
-    print("Myers Briggs Prediction from the best of each Classifier:")
-    print("Best model accuracy:", best_model_accuracy)
-
-    for item in best_classifer_and_nof_features_per_personailty_pair:
-        f.write(item)
-        f.write("\n")
-        print(item)
-    f.close()
+#     i = 0
+#     for pair in best_in_class:
+#         classifier_acc_nof_features = list(zip(classifiers, pair[0], pair[1]))
+#         classifier_max_acc_nof_features = max(classifier_acc_nof_features, key = (lambda x: x[1]))
+#         best_model_accuracy*= classifier_max_acc_nof_features[1]
+#         best_classifer_and_nof_features_per_personailty_pair.append("Pair: "+str(pairs[i])+\
+#                                                                     " Classifier: " +str(classifier_max_acc_nof_features[0])+\
+#                                                                     " Number of features: "+str(classifier_max_acc_nof_features[2]))
+#         i+=1
 
 
-    # Computation time:
-    print("Done")
-    print("Full compute time:",float((time.time() - start_time)/60), "Minutes")
+#     # Print and output the best model accuracy and the top models for each personality pair.
+#     f.write("Myers Briggs Prediction from the best of each Classifier:")
+#     f.write("\n")
+#     f.write("Best model accuracy: " + str(best_model_accuracy))
+#     f.write("\n")
+
+#     print("Myers Briggs Prediction from the best of each Classifier:")
+#     print("Best model accuracy:", best_model_accuracy)
+
+#     for item in best_classifer_and_nof_features_per_personailty_pair:
+#         f.write(item)
+#         f.write("\n")
+#         print(item)
+#     f.close()
+
+
+#     # Computation time:
+#     print("Done")
+#     print("Full compute time:",float((time.time() - start_time)/60), "Minutes")
 
 
 
