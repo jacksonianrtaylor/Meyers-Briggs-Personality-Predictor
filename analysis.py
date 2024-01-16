@@ -141,20 +141,22 @@ def preprocess(i, X_train,X_test,y_train,y_test):
 class feature_selection_classifier(BaseEstimator, ClassifierMixin):
     def __init__(self, nof_features):
 
-        self.selector = SelectKBest(chi2, k=nof_features)
-        self.model = LogisticRegression(max_iter = 1000)
+        self.nof_features = nof_features
 
         #eventually should be useful for custom model types
 
 
     def fit(self, X, y):
         # Check that X and y have correct shape
-        X, y = check_X_y(X, y)
+        # This has been removed to keep csr matrices
+        # X, y = check_X_y(X, y)
 
         # Store the classes seen during fit
         self.classes_ = np.unique(y)
 
         # Your custom fitting logic goes here....
+        self.selector = SelectKBest(chi2, k=self.nof_features)
+        self.model = LogisticRegression(max_iter = 1000)
         self.selector.fit(X, y)
         X_transformed = copy.deepcopy(self.selector.transform(X))
         self.model.fit(X_transformed, y)
@@ -169,7 +171,8 @@ class feature_selection_classifier(BaseEstimator, ClassifierMixin):
         check_is_fitted(self, '_is_fitted')
 
         # Input validation
-        X = check_array(X)
+        # This has been removed to keep csr matrices
+        # X = check_array(X)
 
         # Your custom prediction logic goes here
         X_transformed = copy.deepcopy(self.selector.transform(X))
@@ -187,16 +190,15 @@ def test_features(i, classifier_id, X, y,return_dict,val):
     #2. create a StratifiedKFold object
     #3. use cross_val_score
 
-    model = feature_selection_classifier(i)
 
-    #LOOK: This below does not function
-    skfold = StratifiedKFold(n_splits=6, shuffle=True, random_state=SEED_INT)
+    model = feature_selection_classifier(round(i[0]))
+    skfold = StratifiedKFold(n_splits=12, shuffle=True, random_state=SEED_INT)
     scores = cross_val_score(model, X, y, cv=skfold)
 
     average_score = sum(scores)/len(scores)
-
     return_dict[val] = average_score
-    return 0 
+    
+    return average_score
 
 
 
@@ -252,13 +254,13 @@ def main():
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
 
-        t1 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(1,5)], "args" : ("dec_tree_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 0), "seed" : SEED_INT})
+        t1 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("dec_tree_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 0), "seed" : SEED_INT})
 
-        t2 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(1,5)], "args" : ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 1), "seed" : SEED_INT})
+        t2 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 1), "seed" : SEED_INT})
 
-        t3 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(1,5)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 2), "seed" : SEED_INT})
+        t3 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 2), "seed" : SEED_INT})
 
-        t4 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(1,5)], "args" : ("naive_bays_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 3), "seed" : SEED_INT})
+        t4 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("naive_bays_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 3), "seed" : SEED_INT})
 
         
         # t1 = return_thread(group=None,target=differential_evolution,
