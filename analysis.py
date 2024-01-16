@@ -13,6 +13,15 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
+import numpy as np
+
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_score
+
+
 # from threading import Thread
 import multiprocessing
 
@@ -83,10 +92,8 @@ def fit_tree(X_train,X_test,y_train,y_test, alpha):
     y_pred = dec_tree_a.predict(X_test)   
     return accuracy_score(y_test, y_pred)
     
-   
 
-
-
+#LOOK: need to think about inheritance here...
 
 def preprocess(i, X_train,X_test,y_train,y_test):
     """Transform the data to be ready for a model:"""
@@ -131,16 +138,67 @@ def preprocess(i, X_train,X_test,y_train,y_test):
     # for the best given number of features.
 
 
+class feature_selection_classifier(BaseEstimator, ClassifierMixin):
+    def __init__(self, nof_features):
+
+        self.selector = SelectKBest(chi2, k=nof_features)
+        self.model = LogisticRegression(max_iter = 1000)
+
+        #eventually should be useful for custom model types
+
+
+    def fit(self, X, y):
+        # Check that X and y have correct shape
+        X, y = check_X_y(X, y)
+
+        # Store the classes seen during fit
+        self.classes_ = np.unique(y)
+
+        # Your custom fitting logic goes here....
+        self.selector.fit(X, y)
+        X_transformed = copy.deepcopy(self.selector.transform(X))
+        self.model.fit(X_transformed, y)
+
+        # Mark the estimator as fitted
+        self._is_fitted = True
+
+        return self
+
+    def predict(self, X):
+        # Check if the estimator is fitted
+        check_is_fitted(self, '_is_fitted')
+
+        # Input validation
+        X = check_array(X)
+
+        # Your custom prediction logic goes here
+        X_transformed = copy.deepcopy(self.selector.transform(X))
+        predictions = self.model.predict(X_transformed)
+
+        return predictions
+
+
+
 def test_features(i, classifier_id, X, y,return_dict,val):
     """Train and test a model after preprocessing:"""
 
+    #steps: 
+    #1. create an estimator object
+    #2. create a StratifiedKFold object
+    #3. use cross_val_score
+
+    model = feature_selection_classifier(i)
+
+    #LOOK: This below does not function
+    skfold = StratifiedKFold(n_splits=6, shuffle=True, random_state=SEED_INT)
+    scores = cross_val_score(model, X, y, cv=skfold)
+
+    average_score = sum(scores)/len(scores)
+
+    return_dict[val] = average_score
+    return 0 
 
 
-
-    return 0
-
-
-        
 
 
 def main():
