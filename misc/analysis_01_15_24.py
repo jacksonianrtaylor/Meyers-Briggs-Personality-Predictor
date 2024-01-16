@@ -134,10 +134,68 @@ def preprocess(i, X_train,X_test,y_train,y_test):
 def test_features(i, classifier_id, X, y,return_dict,val):
     """Train and test a model after preprocessing:"""
 
+    return_dict[val] = val
+    num_features = round(i[0])
 
 
+    #LOOK: There is a method in which fold the of features are selected again acording to the data at hand
+    #but I hope the methods present is enough to suffice
 
-    return 0
+
+    X_new = X.toarray().tolist()
+    y_new = y
+
+    temp = list(zip(X_new, y_new))
+    random.shuffle(temp)
+    temp = sorted(temp, key = lambda item: item[1])
+    X_new, y_new = zip(*temp)
+    X_new = list(X_new)
+    y_new = list(y_new)
+
+    # now X_new, y_new are sorted by target value but the order of those are still random...
+
+    # select 25 from each list to be test users
+    # ....
+    #halfway point: 624/2 = 312
+
+
+    #LOOK: This may be a problem with the tf_idf as opposed to simply TF...
+    acc_sum = 0
+    for j in range(1):
+        X_test = X_new[25*j:25*(j+1)] + X_new[312+25*j:312+25*(j+1)]
+        y_test = y_new[25*j:25*(j+1)] + y_new[312+25*j:312+25*(j+1)]
+
+        X_train = X_new[:25*j] + X_new[25*(j+1):312] + X_new[312:312+25*j] + X_new[312+25*(j+1):]
+        y_train = y_new[:25*j] + y_new[25*(j+1):312] + y_new[312:312+25*j] + y_new[312+25*(j+1):]
+
+
+        #LOOK: Need to convert arrays into csr matrices before passing....
+        #otherwise, this takes a very long time
+        # https://machinelearningmastery.com/sparse-matrices-for-machine-learning/
+
+        
+        X_train = csr_matrix(copy.deepcopy(X_train))
+        X_test = csr_matrix(copy.deepcopy(X_test))
+        y_train = copy.deepcopy(y_train)
+        y_test = copy.deepcopy(y_test)
+
+        # X_train,X_test,y_train,y_test = preprocess(num_features,X_train,X_test,y_train,y_test)
+
+        # Model selector:
+        # The negation of the real accuracy is returned from test_features because the differential_evolution optimizer that uses this function...
+        # tries to find the minimum by default.
+        # The optimizers output value can be negated again upon termination of the optimizer to give the real accuracy.
+        # if("dec_tree_model" == classifier_id):
+        #     acc_sum+=-dec_tree_model(X_train,X_test,y_train,y_test)
+        # if("log_reg_model" == classifier_id):
+        #     acc_sum+=-log_reg_model(X_train,X_test,y_train,y_test)
+        # if("rand_forest_model" == classifier_id):
+        #     acc_sum+=-rand_forest_model(X_train,X_test,y_train,y_test) 
+        # if("naive_bays_model" == classifier_id):
+        #     acc_sum+=-naive_bays_model(X_train,X_test,y_train,y_test)
+
+
+    return acc_sum
 
 
         
