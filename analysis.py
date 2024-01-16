@@ -13,6 +13,8 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+# from scipy.optimize import aneal
+
 
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
@@ -25,90 +27,20 @@ from sklearn.model_selection import cross_val_score
 # from threading import Thread
 import multiprocessing
 
-# Global random seed: 
-# Original:
-# SEED_INT = 10 (.459)
-# SEED_INT = 5 (.428)
-# SEED_INT = 15 (0.408)
-# SEED_INT = 20 (0.486)
+# SEED_INT = 10
 
 
-SEED_INT = 10
+def select_model(classifier):
+    if (classifier=="naive_bays_model"):
+        return MultinomialNB()
+    elif(classifier=="log_reg_model"):
+        return LogisticRegression(max_iter = 1000)
+    elif(classifier=="rand_forest_model"):
+        return RandomForestClassifier()
+    elif(classifier == "dec_tree_model"):
+        return DecisionTreeClassifier()
 
-# class return_thread(Thread):
-#     """Thread class that returns a value with join:"""
-#     def __init__(self, group=None, target=None, name=None,
-#                  args=(), kwargs={}, Verbose=None):
-#         Thread.__init__(self, group, target, name, args, kwargs)
-#         self._return = None
-#     def run(self):
-#         if self._target is not None:
-#             self._return = self._target(*self._args,
-#                                                 **self._kwargs)
-#     def join(self, *args):
-#         Thread.join(self, *args)
-#         return self._return
 
-# Classification models:
-# They all return accuracy scores (the number of correct predictions divided by the number of predictions).
-
-def naive_bays_model(X_train,X_test,y_train,y_test):
-    naive_bays = MultinomialNB()
-    naive_bays.fit(X_train,y_train)
-    y_pred=naive_bays.predict(X_test)   
-    return accuracy_score(y_test, y_pred)
-
-def log_reg_model(X_train,X_test,y_train,y_test):
-    log_reg = LogisticRegression(max_iter = 1000)
-    log_reg.fit(X_train,y_train)
-    y_pred=log_reg.predict(X_test)   
-    return accuracy_score(y_test, y_pred)
-
-def rand_forest_model(X_train,X_test,y_train,y_test):
-    rand_for = RandomForestClassifier(random_state = SEED_INT)
-    rand_for.fit(X_train,y_train)
-    y_pred=rand_for.predict(X_test)   
-    return accuracy_score(y_test, y_pred)
-
-def dec_tree_model(X_train,X_test,y_train,y_test):
-    """The decision tree model implements cost complexity pruning."""
-    #LOOK: remove entropy if worse
-    dec_tree = DecisionTreeClassifier(criterion = "entropy", random_state = SEED_INT)
-    path = dec_tree.cost_complexity_pruning_path(X_train, y_train)
-    alphas = path['ccp_alphas']   
-    max_score = 0
-    for alpha in alphas:
-        score = fit_tree(X_train,X_test,y_train,y_test, alpha)
-        if score>max_score:
-            max_score = score                  
-    return max_score  
-
-def fit_tree(X_train,X_test,y_train,y_test, alpha):
-    """Get the accuracy score of a specific tree with the given "alpha":"""
-    if(alpha < 0):
-        alpha = 0
-    dec_tree_a = DecisionTreeClassifier(random_state = SEED_INT, ccp_alpha = alpha)
-    dec_tree_a.fit(X_train,y_train)
-    y_pred = dec_tree_a.predict(X_test)   
-    return accuracy_score(y_test, y_pred)
-    
-
-#LOOK: need to think about inheritance here...
-
-def preprocess(i, X_train,X_test,y_train,y_test):
-    """Transform the data to be ready for a model:"""
-    #  Stratify makes sure the same proportions of target values in the full dataset is preseved in the train and test data 
-    #  Both the y_train and y_test are split 50/50 between any given pair.
-
-    selector = SelectKBest(chi2, k=i)
-    # Only train data is used to fit the selectKbest selector.
-    # This is to simulate a simple case of testing the model with new data that can not influence the selector.
-    selector.fit(X_train, y_train)
-    # However, the X_test data still makes use of it.
-    X_train = selector.transform(X_train)
-    X_test = selector.transform(X_test)
-
-    return X_train,X_test,y_train,y_test
 
 
     # LOOK: implement cross-validation
@@ -139,12 +71,14 @@ def preprocess(i, X_train,X_test,y_train,y_test):
 
 
 class feature_selection_classifier(BaseEstimator, ClassifierMixin):
-    def __init__(self, nof_features):
+    def __init__(self, nof_features, classifier_id):
 
         self.nof_features = nof_features
+        self.classifier_id = classifier_id
 
-        #eventually should be useful for custom model types
-
+        #LOOK: Should model selection be defined here???
+        self.selector = SelectKBest(chi2, k=self.nof_features)
+        self.model = select_model(self.classifier_id)
 
     def fit(self, X, y):
         # Check that X and y have correct shape
@@ -155,10 +89,8 @@ class feature_selection_classifier(BaseEstimator, ClassifierMixin):
         self.classes_ = np.unique(y)
 
         # Your custom fitting logic goes here....
-        self.selector = SelectKBest(chi2, k=self.nof_features)
-        self.model = LogisticRegression(max_iter = 1000)
         self.selector.fit(X, y)
-        X_transformed = copy.deepcopy(self.selector.transform(X))
+        X_transformed = self.selector.transform(X)
         self.model.fit(X_transformed, y)
 
         # Mark the estimator as fitted
@@ -175,14 +107,14 @@ class feature_selection_classifier(BaseEstimator, ClassifierMixin):
         # X = check_array(X)
 
         # Your custom prediction logic goes here
-        X_transformed = copy.deepcopy(self.selector.transform(X))
+        X_transformed = self.selector.transform(X)
         predictions = self.model.predict(X_transformed)
 
         return predictions
 
 
 
-def test_features(i, classifier_id, X, y,return_dict,val):
+def test_features(i, classifier_id, X, y,accuracy_dict,nof_features_dict,val):
     """Train and test a model after preprocessing:"""
 
     #steps: 
@@ -190,15 +122,21 @@ def test_features(i, classifier_id, X, y,return_dict,val):
     #2. create a StratifiedKFold object
     #3. use cross_val_score
 
+    nof_features = round(i[0])
 
-    model = feature_selection_classifier(round(i[0]))
-    skfold = StratifiedKFold(n_splits=12, shuffle=True, random_state=SEED_INT)
-    scores = cross_val_score(model, X, y, cv=skfold)
+    model = feature_selection_classifier(nof_features, classifier_id)
+    skfold = StratifiedKFold(n_splits=3, shuffle=True)
+
+    #LOOK: try increasing number of jobs here to increase cpu usage
+    #this may avoid the need for multiprocessing.
+    #this can be altered to fit a persona machine
+    scores = cross_val_score(model, X, y, cv=skfold, scoring='accuracy', n_jobs=1)
 
     average_score = sum(scores)/len(scores)
-    return_dict[val] = average_score
+    accuracy_dict[val] = average_score
+    nof_features_dict[val] = nof_features
     
-    return average_score
+    return -average_score
 
 
 
@@ -243,6 +181,7 @@ def main():
 
 
     for item in pairs:  
+        mini_start = time.time()
         # Target values of the current personality pair:
         y = list(data[item])
           
@@ -252,55 +191,63 @@ def main():
         #LOOK: try multiples runs without seeding the optimizer  
         #does
         manager = multiprocessing.Manager()
-        return_dict = manager.dict()
+        accuracy_dict = manager.dict()
+        nof_features_dict = manager.dict()
 
-        t1 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("dec_tree_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 0), "seed" : SEED_INT})
 
-        t2 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 1), "seed" : SEED_INT})
+        #LOOK: I can use multiple sets bounds for the same test function here
 
-        t3 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 2), "seed" : SEED_INT})
+        # t1 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(20, 25)], "args" : ("dec_tree_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 0), "seed" : 5})
 
-        t4 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(40,50)], "args" : ("naive_bays_model", copy.deepcopy(X), copy.deepcopy(y), return_dict, 3), "seed" : SEED_INT})
+        # t2 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(20, 25)], "args" : ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 1), "seed" : 5})
+
+        # t3 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(20, 25)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 2), "seed" : 5})
+
+        # t4 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(20, 25)], "args" : ("naive_bays_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 3), "seed" : 5})
+
+        # t1 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(20, 28)], "args" : ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 1), "seed" : 5})
+
+        # t2 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(20, 22)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 2), "maxiter" : 3, "seed" : 5})
+
+        # t3 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(23, 25)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 3), "maxiter" : 3, "seed" : 5})
+
+        # t4 = multiprocessing.Process(target=differential_evolution, kwargs={"func" : test_features, "bounds" : [(26, 28)], "args" : ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict,nof_features_dict, 4), "maxiter" : 3, "seed" : 5})
 
         
-        # t1 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" : [(30,50)],
-        #                          "args": ("dec_tree_model",copy.deepcopy(X), copy.deepcopy(y))})
-        # t2 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
-        #                          "args": ("log_reg_model",copy.deepcopy(X), copy.deepcopy(y))})
-        # t3 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
-        #                          "args": ("rand_forest_model",copy.deepcopy(X), copy.deepcopy(y))})
-        # t4 = return_thread(group=None,target=differential_evolution,
-        #                 kwargs={"func" : classification_tests.test_features,"bounds" :  [(30,50)],
-        #                          "args": ("naive_bays_model",copy.deepcopy(X), copy.deepcopy(y))})
-        t1.start()
-        t2.start()
-        t3.start()
-        t4.start()  
+        # # t1.start()
+        # t2.start()
+        # t3.start()
+        # t4.start()  
 
-        optimal_dec_result = t1.join()
-        optimal_reg_result = t2.join()
-        optimal_for_result = t3.join()
-        optimal_bays_result = t4.join()   
+        # # t1.join()
+        # t2.join()
+        # t3.join()
+        # t4.join()   
 
-        print(return_dict.values())
+        #without multi-processing
+        differential_evolution(func = test_features, bounds =  [(20, 28)], args =  ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y), accuracy_dict, nof_features_dict, 0),
+                                maxiter = 9, seed = 5, workers = 3)
+
+        accuracies = list(accuracy_dict.values())
+        nof_features = list(nof_features_dict.values())
+
+        print(accuracies)
+        print(nof_features)
+        print((time.time() - mini_start)/60, "minutes")
+
+    print("Full compute time:",float((time.time() - start_time)/60), "Minutes")
             
-#LOOK: this whole part is commented out for testing
+            
 #         # Print the accuracy and the number of features for the best of each classifier for the given pair.
 #         print(item, "Classification:")
 #         print("Best Predictor Function Scores:")
-#         print("Decision Tree:","Accuracy:", -optimal_dec_result.fun,"Features:",int(optimal_dec_result.x[0]))
-#         print("Logistic Regession:","Accuracy:",-optimal_reg_result.fun,"Features:",int(optimal_reg_result.x[0]))
-#         print("Random Forest:", "Accuracy:",-optimal_for_result.fun,"Features:",int(optimal_for_result.x[0]))
-#         print("Naive Bays:", "Accuracy:",-optimal_bays_result.fun,"Features:",int(optimal_bays_result.x[0]),"\n")
+#         print("Decision Tree:","Accuracy:", accuracies[0],"Features:",nof_features[0])
+#         print("Logistic Regession:","Accuracy:",accuracies[1],"Features:",nof_features[1])
+#         print("Random Forest:", "Accuracy:",accuracies[2],"Features:",nof_features[2])
+#         print("Naive Bays:", "Accuracy:",accuracies[3],"Features:",nof_features[3],"\n")
         
 
-#         best_in_class.append([[-optimal_dec_result.fun, -optimal_reg_result.fun,
-#                             -optimal_for_result.fun,-optimal_bays_result.fun],
-#                             [int(optimal_dec_result.x[0]), int(optimal_reg_result.x[0]),
-#                             int(optimal_for_result.x[0]), int(optimal_bays_result.x[0])]])
+#         best_in_class.append([accuracies, nof_features])
 
 
 #     # Classifier types used for outputs:
