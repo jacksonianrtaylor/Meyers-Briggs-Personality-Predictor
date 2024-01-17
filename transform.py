@@ -1,14 +1,15 @@
-import pandas as pd
-import nltk
 import csv
 import itertools
 import time
 import random
+import pandas as pd
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from ordered_set import OrderedSet
 
 
 # Downloads needed to work locally:
@@ -16,9 +17,6 @@ nltk.download('punkt')
 nltk.download('words')
 nltk.download('stopwords')
 nltk.download('wordnet')
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
 
 
 # The number of users for the least occuring personality type:
@@ -34,9 +32,9 @@ def load_data():
     """
     Load and return the data_by_type and data_by_type_full variables populated from "mbti_1.csv".
     "data_by_type_full" is a dictionary of personality string keys like "ENTJ" to a list of the corresponding users of that personality type.
-    Each user is a list of 50 posts.
-    "data_by_type" is a dictionary of personality string keys like "ENTJ" to list of 39 random users of that type selected randomly from data_by_type_full
-    Each user is a list of 50 posts.
+    Each user is a combined string of 50 posts.
+    "data_by_type" is a dictionary of personality string keys like "ENTJ" to list of 39 random users of that type selected randomly from data_by_type_full.
+    Each user is a combined string of 50 posts.
     Why 39 users??? That is the number of users of the least occuring personailty type (NUM_USERS = 39)
     See README.md for reason to truncate the number of users in each category to 39.
     """
@@ -46,11 +44,9 @@ def load_data():
     # next(data) cuts the first row which are column labels
     next(data)
 
-    #LOOK: This is slightly inefficient!!!
-    # becasue the operation happens on the entire list of users, but only a small amount of those users are chosen
-    # need to know how to lemmatize a string 
-    # if this does not contribue much to runtime it is ok to leave as is as to not overcomplicate things
-
+    # Note: the below code block is slightly inefficient becasue corpus exrtaction operation happens on the entire list of users,...
+    # but only a small amount of those users are chosen.
+    # However, this does not need to be changed because it relatively contributes very little to the overall runtime.
     data_by_type_full = dict()
     for row in data:   
         if ((row[0] not in data_by_type_full.keys())):
@@ -63,19 +59,8 @@ def load_data():
     return data_by_type, data_by_type_full
 
 
-# LOOK: data_by_type is a dictionary of personality type to list of users
-# Each user is a combined string of their 50 posts 
-
-# TfidfTransformer.fit_transform()
-# Takes a list of strings where each string is all the text written by a single user
-# returns the Tf-idf-weighted document-term matrix
-
-# How do I convert this into a dataframe where each column is a term???
-# vectorizer.get_feature_names_out() gives the terms in the correct order.
-
-
-def tf_full(pairs, data_by_type):
-    """Create a list of users term frequencies and there corresponding personalities."""
+def tf_idf_full(pairs, data_by_type):
+    """Create a list of users tf-idf and their corresponding personalities."""
     corpus_list = []
     pair_types = [[],[],[],[]]
 
@@ -87,31 +72,28 @@ def tf_full(pairs, data_by_type):
                 else:
                     pair_types[index].append(0)
     
+
+            # Note: This code block is slower than:
+            # corpus_list.extend(data_by_type[key]) and using certain TfidfVectorizer() parameters,
+            # but it does some more specific filtering: "token.isalpha()"
             user_tokens = word_tokenize(user)
             user_tokens = [wnl.lemmatize(token.lower()) 
                            for token in user_tokens if token.isalpha() 
                            and wnl.lemmatize(token.lower()) not in stopwords.words('english')]
-            
             corpus_list.append(' '.join(user_tokens))
 
-        # LOOK: This is part of the faster lematization method
-        # corpus_list.extend(data_by_type[key])
 
-    # LOOK: This is part of the faster lematization method
-    # vectorizer = CountVectorizer(lowercase = True, stop_words = "english")
             
-
     vectorizer = TfidfVectorizer()
-    # vectorizer = CountVectorizer()
-    document_term_matrix = vectorizer.fit_transform(corpus_list)
+
+    doc_term_matrix = vectorizer.fit_transform(corpus_list)
     terms = vectorizer.get_feature_names_out()
 
-    #For each user, in the order of "terms" there needs to be a list of term frequencies (sparse)
-    to_csv("tf_matrix.csv", document_term_matrix.toarray(), terms, pair_types)
+    to_csv("tf_idf_matrix.csv", doc_term_matrix.toarray(), terms, pair_types)
 
 
 def to_csv(file_name, word_occurances, terms, pair_types): 
-    """Output term frequencies and personality columns to tf_matrix.csv"""
+    """Output tf-idf and personality columns to tf_matrix.csv"""
     # The intial columns are the word occurances.
     df = pd.DataFrame(data=word_occurances, columns= terms)  
     # These columns are the personailty pair columns.
@@ -125,8 +107,6 @@ def to_csv(file_name, word_occurances, terms, pair_types):
     f.close()    
 
 
-#LOOK: need to try using just basic document frequency instead of tf-idf in both projects
-#LOOk: potential issue with this code is the wrong kind of lematization is used
 
 def main():
     time_t = time.time()
@@ -141,7 +121,7 @@ def main():
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):
         print(w+x+y+z, len(data_by_type_full[w+x+y+z]))
         
-    tf_full(pairs, data_by_type)
+    tf_idf_full(pairs, data_by_type)
 
     print("Done")
     print("Full compute time:",float((time.time() - time_t)/60), "Minutes")

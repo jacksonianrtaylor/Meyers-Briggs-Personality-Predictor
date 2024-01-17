@@ -113,9 +113,10 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 2. With python3 and pip:
     1. Create a python virtual env in the main project directory. (my working python version: 3.10.7).
     2. Activate the virtual environment
-    3. Install the following packages to the virtual env with pip: pandas, nltk, ordered-set, scipy, scikit-learn
+    3. Install the following packages to the virtual env with pip: pandas, numpy, nltk, scipy, scikit-learn
 
 3. Run transform.py in the main project directory (and observe results in console).
 
 4. After completion of transform.py, Run analysis.py (and observe results in console).
+
 

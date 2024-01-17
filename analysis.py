@@ -1,9 +1,11 @@
-import pandas as pd
 import time
 import copy
+import pandas as pd
 import numpy as np
+
 from scipy.sparse import csr_matrix
 from scipy.optimize import differential_evolution
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
@@ -18,6 +20,10 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 
 
 def select_model(classifier):
+    '''
+    Simple classifier model type selection by input string.
+    Any feature_selection_classifier object works similairly, no matter which type of model is chosen. 
+    '''
     if(classifier=="log_reg_model"):
         return LogisticRegression(max_iter = 1000)
     elif(classifier=="rand_forest_model"):
@@ -27,6 +33,10 @@ def select_model(classifier):
 
 
 class feature_selection_classifier(BaseEstimator, ClassifierMixin):
+    '''
+    Child of BaseEstimator and ClassifierMixin to work as an estimator.
+    Model is two parts: feature selection and a classifier. 
+    '''
     def __init__(self, nof_features, classifier_id):
 
         self.nof_features = nof_features
@@ -36,14 +46,14 @@ class feature_selection_classifier(BaseEstimator, ClassifierMixin):
         self.model = select_model(self.classifier_id)
 
     def fit(self, X, y):
-        # Check that X and y have correct shape
+        # Check that X and y have correct shape...
         # This has been removed to allow csr matrices
         # X, y = check_X_y(X, y)
 
         # Store the classes seen during fit
         self.classes_ = np.unique(y)
 
-        # model fitting logic
+        # Model fitting logic:
         self.selector.fit(X, y)
         X_transformed = self.selector.transform(X)
         self.model.fit(X_transformed, y)
@@ -61,7 +71,7 @@ class feature_selection_classifier(BaseEstimator, ClassifierMixin):
         # This has been removed to allow csr matrices
         # X = check_array(X)
 
-        # prediction logic
+        # Prediction logic:
         X_transformed = self.selector.transform(X)
         predictions = self.model.predict(X_transformed)
 
@@ -72,10 +82,10 @@ class feature_selection_classifier(BaseEstimator, ClassifierMixin):
 def test_model(i, classifier_id, X, y):
     """Train and test a model with cross validation"""
 
-    #steps: 
-    #1. create an estimator object
-    #2. create a StratifiedKFold object
-    #3. use cross_val_score
+    # Steps: 
+    #1. Create an estimator object
+    #2. Create a StratifiedKFold object
+    #3. Use cross_val_score
 
     nof_features = round(i[0])
 
@@ -93,18 +103,18 @@ def test_model(i, classifier_id, X, y):
 def main():
 
     start_time = time.time()
-    f = open('tf_matrix.csv', 'r', encoding="utf-8")
+    f = open('tf_idf_matrix.csv', 'r', encoding="utf-8")
     data = pd.read_csv(f, header=0) 
 
     # Personality pairs used for outputs:
     pairs  =  ["_I_E_","_N_S_", "_T_F_", "_J_P_"] 
 
-    # Features are all word/tokens that occur in at least one of the users posts (based on "word_bank" in the transfrom.py programm).
+    # Features are all word/tokens that occur in at least one of the users posts (based on "terms" in the transfrom.py programm).
     features = list(data.keys())
 
     features = features[:-4]
 
-    # X is the tf matrix from tf_matrix.csv (not the personality data)
+    # X is the tf-idf from tf_idf_matrix.csv (not the personality data)
     X = data[features]
     X = X.values
 
@@ -112,13 +122,11 @@ def main():
     X = csr_matrix(X)
 
 
-
-
     # The eventual shape of best_in_class is [4][2][3].
     # The first dimension is the personality pair being tested.
     # The seconds dimension is two lists.
 
-    # The first a list of accuracies scores for each model type.
+    # The first is a list of accuracies scores for each model type. 
     # The second list is the corresponding optimal number of features for each model type. 
 
     # "best_in_class" is used to theoreticly compute the accuracy of any single classifer type predicting the full personality (4 types correctly).
@@ -135,7 +143,7 @@ def main():
         y = list(data[item])
           
         # The optimiztion function, differential_evolution, finds the best value between the bounds of the number of features that maximizes model performance.
-        # LOOK: try multiples runs without seeding the optimizer  
+        # LOOK: Try multiples runs with differen seeds for the optimizer 
 
         # The list of the best accuracy scores per model type
         acc_list = []
