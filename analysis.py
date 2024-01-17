@@ -9,7 +9,6 @@ from scipy.optimize import differential_evolution
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import StratifiedKFold
@@ -28,13 +27,13 @@ def select_model(classifier):
         return LogisticRegression(max_iter = 1000)
     elif(classifier=="rand_forest_model"):
         return RandomForestClassifier()
-    elif (classifier=="naive_bays_model"):
+    elif (classifier=="naive_bayes_model"):
         return MultinomialNB()
 
 
 class feature_selection_classifier(BaseEstimator, ClassifierMixin):
     '''
-    Child of BaseEstimator and ClassifierMixin to work as an estimator.
+    Derived from BaseEstimator and ClassifierMixin to work as an estimator.
     Model is two parts: feature selection and a classifier. 
     '''
     def __init__(self, nof_features, classifier_id):
@@ -78,14 +77,13 @@ class feature_selection_classifier(BaseEstimator, ClassifierMixin):
         return predictions
 
 
-
 def test_model(i, classifier_id, X, y):
-    """Train and test a model with cross validation"""
+    """Train and test with cross validation"""
 
     # Steps: 
     #1. Create an estimator object
     #2. Create a StratifiedKFold object
-    #3. Use cross_val_score
+    #3. Use cross_val_score to train and test
 
     nof_features = round(i[0])
 
@@ -118,7 +116,7 @@ def main():
     X = data[features]
     X = X.values
 
-    # convert to X csr matrix becuase the numpy array is sparse and setting this improves performance
+    # convert X to csr matrix because the numpy array is sparse and setting this improves performance
     X = csr_matrix(X)
 
 
@@ -142,31 +140,29 @@ def main():
         # Target values of the current personality pair:
         y = list(data[item])
           
-        # The optimiztion function, differential_evolution, finds the best value between the bounds of the number of features that maximizes model performance.
-        # LOOK: Try multiples runs with differen seeds for the optimizer 
-
-        # The list of the best accuracy scores per model type
+        # The list of the best accuracies for the personality pair (item for each model type)
         acc_list = []
-        # The corresponsing best input to the number of text features 
+        # The corresponsing best input to the number of word/term features 
         nof_features_list = []
 
+        # The optimization function, differential_evolution, finds the best value between the bounds of the number of features that maximizes model performance.
         # The number of workers becomes equal to the cpu cores available on the system...
-        # So cpu reasources are maxed out to find the optimal number of features with differential evolution for the given model type
+        # So cpu reasources are maxed out to find the optimal number of features for the given model type.
         res1 = differential_evolution(func = test_model, bounds =  [(40, 60)], args =  ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y)),
                                 maxiter = 8, seed = 5, updating = "deferred", workers = -1, x0 = [60])
         acc_list.append(-res1.fun)
-        nof_features_list.append(int(res1.x[0])) 
+        nof_features_list.append(round(res1.x[0])) 
         print("log_reg_model optimized for",item)   
         res2 = differential_evolution(func = test_model, bounds =  [(40, 60)], args =  ("rand_forest_model", copy.deepcopy(X), copy.deepcopy(y)),
                                 maxiter = 8, seed = 5, updating = "deferred", workers = -1, x0 = [60])
         acc_list.append(-res2.fun)
-        nof_features_list.append(int(res2.x[0]))  
+        nof_features_list.append(round(res2.x[0]))  
         print("rand_forest_model optimized for",item)       
-        res3 = differential_evolution(func = test_model, bounds =  [(40, 60)], args =  ("naive_bays_model", copy.deepcopy(X), copy.deepcopy(y)),
+        res3 = differential_evolution(func = test_model, bounds =  [(40, 60)], args =  ("naive_bayes_model", copy.deepcopy(X), copy.deepcopy(y)),
                                 maxiter = 8, seed = 5, updating = "deferred", workers = -1, x0 = [60])
         acc_list.append(-res3.fun)
-        nof_features_list.append(int(res3.x[0]))  
-        print("naive_bays_model optimized for",item)  
+        nof_features_list.append(round(res3.x[0]))  
+        print("naive_bayes_model optimized for",item)  
 
 
         # Print the accuracy and the number of features for the best of each classifier for the given pair.
@@ -175,14 +171,14 @@ def main():
         print("Best Predictor Function Scores:")
         print("Logistic Regession:","Accuracy:",acc_list[0],"Features:",nof_features_list[0])
         print("Random Forest:", "Accuracy:",acc_list[1],"Features:",nof_features_list[1])
-        print("Naive Bays:", "Accuracy:",acc_list[2],"Features:",nof_features_list[2],"\n")
+        print("Naive Bayes:", "Accuracy:",acc_list[2],"Features:",nof_features_list[2],"\n")
         
 
         best_in_class.append([acc_list, nof_features_list])
 
 
     # Classifier types used for outputs:
-    classifiers = ["Logistic Regression", "Random Forest", "Naive Bays"]
+    classifiers = ["Logistic Regression", "Random Forest", "Naive Bayes"]
 
     print("Complete Myers Briggs Prediction for individual Classifiers:\n")
 

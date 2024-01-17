@@ -1,0 +1,5 @@
+#LOOK: How do you achieve a final model from all the testing???
+#for each pair take the best tested (model type and nof features).
+#train the (model type and nof features) again (just once without cross validation)
+#test the model for a single user (input vector of tf-idf for terms the users used)
+#repeat for all personality pairs 

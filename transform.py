@@ -44,7 +44,7 @@ def load_data():
     # next(data) cuts the first row which are column labels
     next(data)
 
-    # Note: the below code block is slightly inefficient becasue corpus exrtaction operation happens on the entire list of users,...
+    # Note: the below code block is slightly inefficient because corpus exrtaction operation happens on the entire list of users,...
     # but only a small amount of those users are chosen.
     # However, this does not need to be changed because it relatively contributes very little to the overall runtime.
     data_by_type_full = dict()
@@ -93,7 +93,7 @@ def tf_idf_full(pairs, data_by_type):
 
 
 def to_csv(file_name, word_occurances, terms, pair_types): 
-    """Output tf-idf and personality columns to tf_matrix.csv"""
+    """Output tf-idf and personality columns to tf_idf_matrix.csv"""
     # The intial columns are the word occurances.
     df = pd.DataFrame(data=word_occurances, columns= terms)  
     # These columns are the personailty pair columns.
