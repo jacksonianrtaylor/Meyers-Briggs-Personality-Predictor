@@ -74,7 +74,7 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 
     * In order to force independence between personality pairs, it is important that the same number of users of each personality (39) for each of the 16 personalities (624 total) is used in the test train process for every model. 
 
-    * This means for each of the four personality pairs, the 624 users are split evenly (50/50) into 312 users of one personality in the pair and 312 users of the opposite personality in the pair
+    * This means that for each of the four personality pairs, the 624 users are split evenly (50/50) into 312 users of one personality in the pair and 312 users of the opposite personality in the pair
 
     * Using StratifiedKFold in the cross validation function, the split of both personality pairs stays even for both train and test users. 
 
@@ -87,9 +87,9 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 
 - The absence of popularity bias means that one personality pair being a certain way does not influence the chance of any other personality pair being a certain way.
 
-- For each of the three model types, the analysis.py program outputs the accuracy results using this consistent model type on each personality pair and combining like above: (acc_1\*acc_2\*acc_3\*acc_4)
+- For each of the three model types, the analysis.py program outputs the best model accuracy results using 4 of the 12 models that are the corresponding model type where each model contains the accuracy of a predicting a distinct personality pair. The accuracy of the entire 4 pair predictions look like this: (acc_1\*acc_2\*acc_3\*acc_4)
 
-- It also outputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model out of 4 model types is used for each personality type. Again, the accuracy of the entire 4 pair predictions looks like this: (acc_1\*acc_2\*acc_3\*acc_4)
+- It also outputs the accuracy results of the absolute best model for each personality pair. This means the highest performing model out of 3 model types is used for each personality pair. Again, the accuracy of the entire 4 pair predictions looks like this: (acc_1\*acc_2\*acc_3\*acc_4)
 
 - The outputs are also saved to [results.txt](results.txt)
 
