@@ -21,7 +21,7 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 def select_model(classifier):
     '''
     Simple classifier model type selection by input string.
-    Any feature_selection_classifier object works similarly, no matter which type of model is chosen. 
+    Any featureSelectionClassifier object works similarly, no matter which type of model is chosen. 
     '''
     if(classifier=="log_reg_model"):
         return LogisticRegression(max_iter = 1000)
@@ -31,7 +31,7 @@ def select_model(classifier):
         return MultinomialNB()
 
 
-class feature_selection_classifier(BaseEstimator, ClassifierMixin):
+class featureSelectionClassifier(BaseEstimator, ClassifierMixin):
     '''
     Derived from BaseEstimator and ClassifierMixin to work as an estimator.
     Model is two parts: feature selection and a classifier. 
@@ -87,7 +87,7 @@ def test_model(i, classifier_id, X, y):
 
     nof_features = round(i[0])
 
-    model = feature_selection_classifier(nof_features, classifier_id)
+    model = featureSelectionClassifier(nof_features, classifier_id)
     skfold = StratifiedKFold(n_splits=12, shuffle=True)
 
     scores = cross_val_score(model, X, y, cv=skfold, scoring='accuracy', n_jobs=1)
