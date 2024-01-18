@@ -72,7 +72,7 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 
 * #### Enforcing independence: 
 
-    * In order to force independence between personality pairs, it is important that the same number of users of each personality (39) for each of the 16 personalities (624 total) is used in the test train process for every model. 
+    * In order to force independence between personality pairs, it is important that the same number of users of each personality (39) for each of the 16 personalities (624 total) is used in the train-test process for every model. 
 
     * This means that for each of the four personality pairs, the 624 users are split evenly (50/50) into 312 users of one personality in the pair and 312 users of the opposite personality in the pair
 
@@ -109,6 +109,6 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 
 3. Run transform.py in the main project directory (and observe results in console).
 
-4. After completion of transform.py, Run analysis.py (and observe results in console).
+4. After completion of transform.py, Run analysis.py (and observe results in console or results.txt).
 
 
