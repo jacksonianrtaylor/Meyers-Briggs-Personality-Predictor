@@ -19,7 +19,7 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 
 
-# The number of users for the least occuring personality type:
+# The number of users for the least occurring personality type:
 NUM_USERS = 39
 
 # Global random seed: 
@@ -35,7 +35,7 @@ def load_data():
     Each user is a combined string of 50 posts.
     "data_by_type" is a dictionary of personality string keys like "ENTJ" to list of 39 random users of that type selected randomly from data_by_type_full.
     Each user is a combined string of 50 posts.
-    Why 39 users??? That is the number of users of the least occuring personailty type (NUM_USERS = 39)
+    Why 39 users??? That is the number of users of the least occurring personality type (NUM_USERS = 39)
     See README.md for reason to truncate the number of users in each category to 39.
     """
 
@@ -44,7 +44,7 @@ def load_data():
     # next(data) cuts the first row which are column labels
     next(data)
 
-    # Note: the below code block is slightly inefficient because corpus exrtaction operation happens on the entire list of users,...
+    # Note: the below code block is slightly inefficient because corpus extraction operation happens on the entire list of users,...
     # but only a small amount of those users are chosen.
     # However, this does not need to be changed because it relatively contributes very little to the overall runtime.
     data_by_type_full = dict()
@@ -86,17 +86,17 @@ def tf_idf_full(pairs, data_by_type):
             
     vectorizer = TfidfVectorizer()
 
-    doc_term_matrix = vectorizer.fit_transform(corpus_list)
+    tf_idf_matrix = vectorizer.fit_transform(corpus_list)
     terms = vectorizer.get_feature_names_out()
 
-    to_csv("tf_idf_matrix.csv", doc_term_matrix.toarray(), terms, pair_types)
+    to_csv("tf_idf_matrix.csv", tf_idf_matrix.toarray(), terms, pair_types)
 
 
-def to_csv(file_name, word_occurances, terms, pair_types): 
+def to_csv(file_name, tf_idf_matrix, terms, pair_types): 
     """Output tf-idf and personality columns to tf_idf_matrix.csv"""
-    # The intial columns are the word occurances.
-    df = pd.DataFrame(data=word_occurances, columns= terms)  
-    # These columns are the personailty pair columns.
+    # The initial columns are the word occurrences.
+    df = pd.DataFrame(data=tf_idf_matrix, columns= terms)  
+    # These columns are the personality pair columns.
     df["_I_E_"] = pair_types[0]
     df["_N_S_"] = pair_types[1]
     df["_T_F_"] = pair_types[2]
@@ -117,7 +117,7 @@ def main():
     data_by_type, data_by_type_full = load_data()                                
     pairs  = [['I', 'E'],['N', 'S'],['T', 'F'],['J', 'P']]
 
-    print("Orginal counts per Personality:")
+    print("Original counts per Personality:")
     for w,x,y,z in itertools.product(pairs[0],pairs[1],pairs[2],pairs[3]):
         print(w+x+y+z, len(data_by_type_full[w+x+y+z]))
         

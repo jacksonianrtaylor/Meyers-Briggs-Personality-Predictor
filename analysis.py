@@ -21,7 +21,7 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 def select_model(classifier):
     '''
     Simple classifier model type selection by input string.
-    Any feature_selection_classifier object works similairly, no matter which type of model is chosen. 
+    Any feature_selection_classifier object works similarly, no matter which type of model is chosen. 
     '''
     if(classifier=="log_reg_model"):
         return LogisticRegression(max_iter = 1000)
@@ -107,7 +107,7 @@ def main():
     # Personality pairs used for outputs:
     pairs  =  ["_I_E_","_N_S_", "_T_F_", "_J_P_"] 
 
-    # Features are all word/tokens that occur in at least one of the users posts (based on "terms" in the transfrom.py programm).
+    # Features are all word/tokens that occur in at least one of the users posts (based on "terms" in the transform.py program).
     features = list(data.keys())
 
     features = features[:-4]
@@ -127,9 +127,9 @@ def main():
     # The first is a list of accuracies scores for each model type. 
     # The second list is the corresponding optimal number of features for each model type. 
 
-    # "best_in_class" is used to theoreticly compute the accuracy of any single classifer type predicting the full personality (4 types correctly).
-    # "best_in_class" is also used to theoreticlly compute the accuracy when the absolute best optimized classfier type...
-    # is used to predict each personailty pair (4 types correctly).
+    # "best_in_class" is used to theoretically compute the accuracy of any single classifier type predicting the full personality (4 types correctly).
+    # "best_in_class" is also used to theoretically compute the accuracy when the absolute best optimized classifier type...
+    # is used to predict each personality pair (4 types correctly).
 
     best_in_class = []
 
@@ -142,12 +142,12 @@ def main():
           
         # The list of the best accuracies for the personality pair (item for each model type)
         acc_list = []
-        # The corresponsing best input to the number of word/term features 
+        # The corresponding best input to the number of word/term features 
         nof_features_list = []
 
         # The optimization function, differential_evolution, finds the best value between the bounds of the number of features that maximizes model performance.
         # The number of workers becomes equal to the cpu cores available on the system...
-        # So cpu reasources are maxed out to find the optimal number of features for the given model type.
+        # So cpu resources are maxed out to find the optimal number of features for the given model type.
         res1 = differential_evolution(func = test_model, bounds =  [(40, 60)], args =  ("log_reg_model", copy.deepcopy(X), copy.deepcopy(y)),
                                 maxiter = 8, seed = 5, updating = "deferred", workers = -1, x0 = [60])
         acc_list.append(-res1.fun)
@@ -169,7 +169,7 @@ def main():
         print()
         print(item, "Classification:")
         print("Best Predictor Function Scores:")
-        print("Logistic Regession:","Accuracy:",acc_list[0],"Features:",nof_features_list[0])
+        print("Logistic Regression:","Accuracy:",acc_list[0],"Features:",nof_features_list[0])
         print("Random Forest:", "Accuracy:",acc_list[1],"Features:",nof_features_list[1])
         print("Naive Bayes:", "Accuracy:",acc_list[2],"Features:",nof_features_list[2],"\n")
         
@@ -187,7 +187,7 @@ def main():
     f.write("Complete Myers Briggs Prediction for individual Classifiers:")
     f.write("\n\n")
 
-    # Find the best models that uses the same classifer type for each personality pair and output results.
+    # Find the best models that uses the same classifier type for each personality pair and output results.
     for i in range (0,3):
         pair_wise_features = ""
         model_accuracy =1
@@ -210,7 +210,7 @@ def main():
 
 
     # Find the absolute best model:
-    best_classifer_and_nof_features_per_personailty_pair = []
+    best_classifier_and_nof_features_per_personality_pair = []
     best_model_accuracy  = 1
 
     i = 0
@@ -218,7 +218,7 @@ def main():
         classifier_acc_nof_features = list(zip(classifiers, pair[0], pair[1]))
         classifier_max_acc_nof_features = max(classifier_acc_nof_features, key = (lambda x: x[1]))
         best_model_accuracy*= classifier_max_acc_nof_features[1]
-        best_classifer_and_nof_features_per_personailty_pair.append("Pair: "+str(pairs[i])+\
+        best_classifier_and_nof_features_per_personality_pair.append("Pair: "+str(pairs[i])+\
                                                                     " Classifier: " +str(classifier_max_acc_nof_features[0])+\
                                                                     " Number of features: "+str(classifier_max_acc_nof_features[2]))
         i+=1
@@ -233,7 +233,7 @@ def main():
     print("Myers Briggs Prediction from the best of each Classifier:")
     print("Best model accuracy:", best_model_accuracy)
 
-    for item in best_classifer_and_nof_features_per_personailty_pair:
+    for item in best_classifier_and_nof_features_per_personality_pair:
         f.write(item)
         f.write("\n")
         print(item)
