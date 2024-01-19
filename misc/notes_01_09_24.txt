@@ -1,6 +1,0 @@
-
-LOOK: Should there be estimation for the time to run?
-LOOK: What about short cuts for runing the program???
-LOOK: do u need to specify how to turn on docker???
-LOOK: should there be a mesasge to print to show the start of the
-program???
