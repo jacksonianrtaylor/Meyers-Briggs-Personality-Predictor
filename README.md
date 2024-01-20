@@ -99,12 +99,12 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 * Requirements:
     * Git
     * python3 and pip (my working python version: 3.10.7)
-    * 8 GBs of ram total on machine (to be safe)
+    * 8 GBs of total ram on machine to be safe (less is workable depending on the concurrent tasks running on machines).
 
 1. Clone the repository with git.
 
 2. With python3 and pip:
-    1. Create a python virtual env in the main project directory. (my working python version: 3.10.7).
+    1. Create a python virtual env in the main project directory. (my working python version: 3.10.7)
     2. Activate the virtual environment
     3. Install the following packages to the virtual env with pip: pandas, numpy, nltk, scipy, scikit-learn
 
