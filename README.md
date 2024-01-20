@@ -99,7 +99,7 @@ The data file [mbti_1.csv](mbti_1.csv) is a list of users personality types and 
 * Requirements:
     * Git
     * python3 and pip (my working python version: 3.10.7)
-    * 8 GBs of total ram on machine to be safe (less is workable depending on the concurrent tasks running on machines).
+    * 8 GBs of total ram on machine to be safe (less is workable depending on the concurrent tasks running on machine).
 
 1. Clone the repository with git.
 
